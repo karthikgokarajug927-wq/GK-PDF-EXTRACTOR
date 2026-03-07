@@ -9,59 +9,66 @@ st.set_page_config(
 )
 
 st.title("📦 GK ZIP to PDF Extractor")
-st.caption("Upload a ZIP file and extract all PDF files")
+st.caption("Upload one or multiple ZIP files and extract all PDF files")
 
 st.divider()
 
-uploaded_file = st.file_uploader(
-    "Upload ZIP file",
-    type="zip"
+uploaded_files = st.file_uploader(
+    "Upload ZIP files",
+    type="zip",
+    accept_multiple_files=True
 )
 
-if uploaded_file:
+all_pdfs = {}
 
-    with zipfile.ZipFile(uploaded_file, "r") as zip_ref:
+if uploaded_files:
 
-        pdf_files = [file for file in zip_ref.namelist() if file.lower().endswith(".pdf")]
+    for uploaded_file in uploaded_files:
 
-        if pdf_files:
+        with zipfile.ZipFile(uploaded_file, "r") as zip_ref:
 
-            st.success(f"Found {len(pdf_files)} PDF files")
-
-            st.subheader("Download Individual PDFs")
-
-            pdf_data = {}
+            pdf_files = [file for file in zip_ref.namelist() if file.lower().endswith(".pdf")]
 
             for pdf in pdf_files:
 
                 pdf_bytes = zip_ref.read(pdf)
-                pdf_data[pdf] = pdf_bytes
+                all_pdfs[pdf] = pdf_bytes
 
-                st.download_button(
-                    label=f"⬇ Download {pdf}",
-                    data=pdf_bytes,
-                    file_name=pdf,
-                    mime="application/pdf"
-                )
+    if all_pdfs:
 
-            st.divider()
-            st.subheader("Download All PDFs Together")
+        st.success(f"Found {len(all_pdfs)} PDF files")
 
-            zip_buffer = io.BytesIO()
+        # Create ZIP containing all PDFs
+        zip_buffer = io.BytesIO()
 
-            with zipfile.ZipFile(zip_buffer, "w") as new_zip:
-                for pdf_name, pdf_bytes in pdf_data.items():
-                    new_zip.writestr(pdf_name, pdf_bytes)
+        with zipfile.ZipFile(zip_buffer, "w") as new_zip:
+            for pdf_name, pdf_bytes in all_pdfs.items():
+                new_zip.writestr(pdf_name, pdf_bytes)
+
+        st.subheader("Download All PDFs")
+
+        st.download_button(
+            label="⬇ Download All PDFs as ZIP",
+            data=zip_buffer.getvalue(),
+            file_name="all_extracted_pdfs.zip",
+            mime="application/zip"
+        )
+
+        st.divider()
+
+        st.subheader("Download Individual PDFs")
+
+        for pdf_name, pdf_bytes in all_pdfs.items():
 
             st.download_button(
-                label="⬇ Download All PDFs as ZIP",
-                data=zip_buffer.getvalue(),
-                file_name="extracted_pdfs.zip",
-                mime="application/zip"
+                label=f"⬇ Download {pdf_name}",
+                data=pdf_bytes,
+                file_name=pdf_name,
+                mime="application/pdf"
             )
 
-        else:
-            st.error("No PDF files found in this ZIP file.")
+    else:
+        st.error("No PDF files found in uploaded ZIP files")
 
 st.divider()
 

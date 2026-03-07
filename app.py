@@ -9,7 +9,7 @@ st.set_page_config(
 )
 
 st.title("📦 GK ZIP to PDF Extractor")
-st.caption("Upload a ZIP file and download all PDFs inside")
+st.caption("Upload a ZIP file and extract all PDF files")
 
 st.divider()
 
@@ -28,9 +28,14 @@ if uploaded_file:
 
             st.success(f"Found {len(pdf_files)} PDF files")
 
+            st.subheader("Download Individual PDFs")
+
+            pdf_data = {}
+
             for pdf in pdf_files:
 
                 pdf_bytes = zip_ref.read(pdf)
+                pdf_data[pdf] = pdf_bytes
 
                 st.download_button(
                     label=f"⬇ Download {pdf}",
@@ -39,8 +44,24 @@ if uploaded_file:
                     mime="application/pdf"
                 )
 
+            st.divider()
+            st.subheader("Download All PDFs Together")
+
+            zip_buffer = io.BytesIO()
+
+            with zipfile.ZipFile(zip_buffer, "w") as new_zip:
+                for pdf_name, pdf_bytes in pdf_data.items():
+                    new_zip.writestr(pdf_name, pdf_bytes)
+
+            st.download_button(
+                label="⬇ Download All PDFs as ZIP",
+                data=zip_buffer.getvalue(),
+                file_name="extracted_pdfs.zip",
+                mime="application/zip"
+            )
+
         else:
-            st.error("No PDF files found in the ZIP")
+            st.error("No PDF files found in this ZIP file.")
 
 st.divider()
 

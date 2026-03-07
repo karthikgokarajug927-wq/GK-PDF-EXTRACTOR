@@ -49,14 +49,17 @@ def process_pdf(file, filename):
 
         for page in pdf.pages:
 
-            text += page.extract_text() or ""
+            extracted_text = page.extract_text()
+            if extracted_text:
+                text += extracted_text + "\n"
 
             tables = page.extract_tables()
 
             for table in tables:
-                df = pd.DataFrame(table)
-                df["Source File"] = filename
-                table_data.append(df)
+                if table and len(table) > 1:
+                    df = pd.DataFrame(table[1:], columns=table[0])
+                    df["Source File"] = filename
+                    table_data.append(df)
 
         text_data.append({
             "File Name": filename,
@@ -104,7 +107,14 @@ if uploaded_files:
 
     if table_data:
 
-        tables_df = pd.concat(table_data)
+        clean_tables = []
+
+        for table in table_data:
+            df = table.copy()
+            df.reset_index(drop=True, inplace=True)
+            clean_tables.append(df)
+
+        tables_df = pd.concat(clean_tables, ignore_index=True)
 
         st.subheader("Extracted Tables")
         st.dataframe(tables_df, use_container_width=True)
@@ -118,7 +128,7 @@ if uploaded_files:
         if table_data:
             tables_df.to_excel(writer, sheet_name="Tables", index=False)
 
-    csv_buffer = text_df.to_csv(index=False).encode()
+    csv_buffer = tables_df.to_csv(index=False).encode("utf-8") if table_data else text_df.to_csv(index=False).encode("utf-8")
 
     col1, col2 = st.columns(2)
 
@@ -134,7 +144,7 @@ if uploaded_files:
         st.download_button(
             "⬇ Download CSV",
             data=csv_buffer,
-            file_name="gk_pdf_text.csv",
+            file_name="gk_pdf_data.csv",
             mime="text/csv"
         )
 

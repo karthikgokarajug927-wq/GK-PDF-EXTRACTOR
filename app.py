@@ -1,153 +1,47 @@
 import streamlit as st
-import pdfplumber
-import pandas as pd
 import zipfile
 import io
-import time
 
 st.set_page_config(
-    page_title="GK PDF Extractor Pro",
-    page_icon="📄",
+    page_title="GK ZIP to PDF Extractor",
+    page_icon="📦",
     layout="wide"
 )
 
-st.title("📄 GK PDF Extractor Pro")
-st.caption("Extract text and tables from PDFs instantly")
+st.title("📦 GK ZIP to PDF Extractor")
+st.caption("Upload a ZIP file and download all PDFs inside")
 
 st.divider()
 
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    st.metric("Supported", "PDF / ZIP")
-
-with col2:
-    st.metric("Outputs", "Excel / CSV")
-
-with col3:
-    st.metric("Extraction", "Text + Tables")
-
-with col4:
-    st.metric("Mode", "Auto")
-
-st.divider()
-
-uploaded_files = st.file_uploader(
-    "📂 Upload PDF files or ZIP",
-    type=["pdf","zip"],
-    accept_multiple_files=True
+uploaded_file = st.file_uploader(
+    "Upload ZIP file",
+    type="zip"
 )
 
-text_data = []
-table_data = []
+if uploaded_file:
 
-def process_pdf(file, filename):
+    with zipfile.ZipFile(uploaded_file, "r") as zip_ref:
 
-    with pdfplumber.open(file) as pdf:
+        pdf_files = [file for file in zip_ref.namelist() if file.lower().endswith(".pdf")]
 
-        text = ""
+        if pdf_files:
 
-        for page in pdf.pages:
+            st.success(f"Found {len(pdf_files)} PDF files")
 
-            extracted_text = page.extract_text()
-            if extracted_text:
-                text += extracted_text + "\n"
+            for pdf in pdf_files:
 
-            tables = page.extract_tables()
+                pdf_bytes = zip_ref.read(pdf)
 
-            for table in tables:
-                if table and len(table) > 1:
-                    df = pd.DataFrame(table[1:], columns=table[0])
-                    df["Source File"] = filename
-                    table_data.append(df)
-
-        text_data.append({
-            "File Name": filename,
-            "Extracted Text": text
-        })
-
-if uploaded_files:
-
-    progress = st.progress(0)
-    status = st.empty()
-
-    total_files = len(uploaded_files)
-    count = 0
-
-    for uploaded in uploaded_files:
-
-        if uploaded.name.endswith(".zip"):
-
-            with zipfile.ZipFile(uploaded) as z:
-
-                pdf_files = [f for f in z.namelist() if f.endswith(".pdf")]
-
-                for pdf in pdf_files:
-
-                    status.write(f"Processing {pdf}")
-
-                    with z.open(pdf) as file:
-                        process_pdf(file, pdf)
+                st.download_button(
+                    label=f"⬇ Download {pdf}",
+                    data=pdf_bytes,
+                    file_name=pdf,
+                    mime="application/pdf"
+                )
 
         else:
-
-            status.write(f"Processing {uploaded.name}")
-            process_pdf(uploaded, uploaded.name)
-
-        count += 1
-        progress.progress(count / total_files)
-        time.sleep(0.2)
-
-    text_df = pd.DataFrame(text_data)
-
-    st.success(f"✅ Processed {len(text_data)} PDFs")
-
-    st.subheader("Extracted Text")
-    st.dataframe(text_df, use_container_width=True)
-
-    if table_data:
-
-        clean_tables = []
-
-        for table in table_data:
-            df = table.copy()
-            df.reset_index(drop=True, inplace=True)
-            clean_tables.append(df)
-
-        tables_df = pd.concat(clean_tables, ignore_index=True)
-
-        st.subheader("Extracted Tables")
-        st.dataframe(tables_df, use_container_width=True)
-
-    excel_buffer = io.BytesIO()
-
-    with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
-
-        text_df.to_excel(writer, sheet_name="Text", index=False)
-
-        if table_data:
-            tables_df.to_excel(writer, sheet_name="Tables", index=False)
-
-    csv_buffer = tables_df.to_csv(index=False).encode("utf-8") if table_data else text_df.to_csv(index=False).encode("utf-8")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.download_button(
-            "⬇ Download Excel",
-            data=excel_buffer.getvalue(),
-            file_name="gk_pdf_extraction.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-
-    with col2:
-        st.download_button(
-            "⬇ Download CSV",
-            data=csv_buffer,
-            file_name="gk_pdf_data.csv",
-            mime="text/csv"
-        )
+            st.error("No PDF files found in the ZIP")
 
 st.divider()
 
-st.caption("GK Tools • PDF Automation Suite 🚀")
+st.caption("GK Tools 🚀")

@@ -1,10 +1,13 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+@import "tailwindcss";
 
-body {
-  margin: 0;
-  min-height: 100vh;
+@theme {
+  --color-text: #1a1a1a;
+  --color-text-secondary: #666666;
+  --color-border: #e5e5e5;
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f8f8f8;
+  --color-accent: #2c2c2c;
+  --color-accent-hover: #000000;
+  --color-error: #dc2626;
+  --transition: all 0.2s ease;
 }

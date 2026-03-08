@@ -1,4 +1,9 @@
-streamlit
+Flask
+PyPDF2
+pdf2docx
+python-docx
+pillow
+reportlab
 pdfplumber
 pandas
 openpyxl

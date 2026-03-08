@@ -1,12 +1,15 @@
 from flask import Flask, render_template_string, request, send_file
 import zipfile
 import io
+import base64
 from PyPDF2 import PdfMerger
 from pdf2docx import Converter
 from docx import Document
 from reportlab.pdfgen import canvas
 
 app = Flask(__name__)
+
+stored_pdfs=[]
 
 HTML = """
 <!DOCTYPE html>
@@ -51,10 +54,6 @@ padding:40px 80px;
 background:#1c1c1c;
 padding:25px;
 border-radius:10px;
-}
-
-.card h3{
-margin-bottom:10px;
 }
 
 input{
@@ -180,10 +179,52 @@ background:#ddd;
 </html>
 """
 
+RESULT_HTML="""
+<!DOCTYPE html>
+<html>
+<head>
+<title>Extracted PDFs</title>
+</head>
+
+<body style="font-family:Arial;background:#111;color:white;padding:40px">
+
+<h2>Extracted PDF Files</h2>
+
+{% for name,data in files %}
+
+<p>
+
+{{name}}
+
+<a download="{{name}}" href="data:application/pdf;base64,{{data}}">
+<button>Download</button>
+</a>
+
+</p>
+
+{% endfor %}
+
+<hr>
+
+<form method="POST" action="/download_all">
+
+{% for name,data in files %}
+<input type="hidden" name="names" value="{{name}}">
+<input type="hidden" name="datas" value="{{data}}">
+{% endfor %}
+
+<button>Download All PDFs as ZIP</button>
+
+</form>
+
+</body>
+</html>
+"""
+
 @app.route("/", methods=["GET","POST"])
 def home():
 
-    if request.method == "POST":
+    if request.method=="POST":
 
         tool=request.form["tool"]
         files=request.files.getlist("files")
@@ -195,11 +236,13 @@ def home():
             for f in files:
                 merger.append(f)
 
-            output="/tmp/merged.pdf"
+            output=io.BytesIO()
             merger.write(output)
             merger.close()
 
-            return send_file(output,as_attachment=True)
+            output.seek(0)
+
+            return send_file(output,download_name="merged.pdf",as_attachment=True)
 
         if tool=="compress":
 
@@ -208,11 +251,13 @@ def home():
             for f in files:
                 merger.append(f)
 
-            output="/tmp/compressed.pdf"
+            output=io.BytesIO()
             merger.write(output)
             merger.close()
 
-            return send_file(output,as_attachment=True)
+            output.seek(0)
+
+            return send_file(output,download_name="compressed.pdf",as_attachment=True)
 
         if tool=="pdf2word":
 
@@ -222,25 +267,21 @@ def home():
 
                 for f in files:
 
-                    temp="/tmp/temp.pdf"
+                    temp_pdf=io.BytesIO(f.read())
 
-                    with open(temp,"wb") as t:
-                        t.write(f.read())
+                    with open("temp.pdf","wb") as t:
+                        t.write(temp_pdf.getvalue())
 
-                    output="/tmp/converted.docx"
-
-                    cv=Converter(temp)
-                    cv.convert(output)
+                    cv=Converter("temp.pdf")
+                    cv.convert("temp.docx")
                     cv.close()
 
-                    with open(output,"rb") as d:
+                    with open("temp.docx","rb") as d:
                         zip_file.writestr(f.filename.replace(".pdf",".docx"),d.read())
 
-            return send_file(
-                io.BytesIO(zip_buffer.getvalue()),
-                download_name="converted_docs.zip",
-                as_attachment=True
-            )
+            zip_buffer.seek(0)
+
+            return send_file(zip_buffer,download_name="converted_docs.zip",as_attachment=True)
 
         if tool=="word2pdf":
 
@@ -252,7 +293,7 @@ def home():
 
                     document=Document(f)
 
-                    output="/tmp/out.pdf"
+                    output=io.BytesIO()
 
                     c=canvas.Canvas(output)
 
@@ -264,18 +305,17 @@ def home():
 
                     c.save()
 
-                    with open(output,"rb") as d:
-                        zip_file.writestr(f.filename.replace(".docx",".pdf"),d.read())
+                    output.seek(0)
 
-            return send_file(
-                io.BytesIO(zip_buffer.getvalue()),
-                download_name="converted_pdfs.zip",
-                as_attachment=True
-            )
+                    zip_file.writestr(f.filename.replace(".docx",".pdf"),output.read())
+
+            zip_buffer.seek(0)
+
+            return send_file(zip_buffer,download_name="converted_pdfs.zip",as_attachment=True)
 
         if tool=="zipextract":
 
-            all_pdfs=[]
+            extracted=[]
             names=set()
 
             for uploaded_file in files:
@@ -290,24 +330,35 @@ def home():
 
                                 data=zip_ref.read(file)
 
-                                all_pdfs.append((file,data))
+                                encoded=base64.b64encode(data).decode()
+
+                                extracted.append((file,encoded))
 
                                 names.add(file)
 
-            zip_buffer=io.BytesIO()
-
-            with zipfile.ZipFile(zip_buffer,"w") as zip_file:
-
-                for name,data in all_pdfs:
-                    zip_file.writestr(name,data)
-
-            return send_file(
-                io.BytesIO(zip_buffer.getvalue()),
-                download_name="extracted_pdfs.zip",
-                as_attachment=True
-            )
+            return render_template_string(RESULT_HTML,files=extracted)
 
     return render_template_string(HTML)
+
+@app.route("/download_all",methods=["POST"])
+def download_all():
+
+    names=request.form.getlist("names")
+    datas=request.form.getlist("datas")
+
+    zip_buffer=io.BytesIO()
+
+    with zipfile.ZipFile(zip_buffer,"w") as zip_file:
+
+        for name,data in zip(names,datas):
+
+            pdf=base64.b64decode(data)
+
+            zip_file.writestr(name,pdf)
+
+    zip_buffer.seek(0)
+
+    return send_file(zip_buffer,download_name="extracted_pdfs.zip",as_attachment=True)
 
 if __name__=="__main__":
     app.run()

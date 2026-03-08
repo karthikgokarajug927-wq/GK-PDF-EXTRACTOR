@@ -1,11 +1,10 @@
 from flask import Flask, render_template_string, request, send_file
 import zipfile
+import io
 from PyPDF2 import PdfMerger
 from pdf2docx import Converter
 from docx import Document
 from reportlab.pdfgen import canvas
-from PIL import Image
-import io
 
 app = Flask(__name__)
 
@@ -14,72 +13,60 @@ HTML = """
 <html>
 <head>
 
-<title>GKZIPDF - Smart PDF Tools</title>
+<title>GKZIPDF Tools</title>
 
 <style>
 
 body{
 margin:0;
 font-family:Arial;
-background:#0f0f0f;
+background:#0e0e0e;
 color:white;
 }
 
 header{
 padding:20px 60px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-background:#000;
-}
-
-.logo{
+background:black;
 font-size:22px;
 font-weight:bold;
 }
 
 .hero{
 text-align:center;
-padding:80px 20px;
+padding:60px;
 }
 
 .hero h1{
-font-size:48px;
-margin-bottom:10px;
-}
-
-.hero p{
-color:#aaa;
-font-size:18px;
+font-size:42px;
 }
 
 .tools{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:20px;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:25px;
 padding:40px 80px;
 }
 
 .card{
-background:#1a1a1a;
+background:#1c1c1c;
 padding:25px;
 border-radius:10px;
-text-align:center;
 }
 
 .card h3{
-margin-bottom:15px;
+margin-bottom:10px;
 }
 
-.card input{
+input{
 margin:10px 0;
+width:100%;
 }
 
 button{
 background:white;
 color:black;
 border:none;
-padding:10px 18px;
+padding:10px 15px;
 border-radius:6px;
 cursor:pointer;
 font-weight:bold;
@@ -89,92 +76,105 @@ button:hover{
 background:#ddd;
 }
 
-footer{
-text-align:center;
-padding:30px;
-color:#777;
-}
-
 </style>
 
 </head>
 
 <body>
 
-<header>
-<div class="logo">📄 GKZIPDF</div>
-</header>
+<header>📄 GKZIPDF</header>
 
 <div class="hero">
 
-<h1>All PDF Tools in One Place</h1>
+<h1>Smart PDF Tools</h1>
 
-<p>
-Merge, Compress, Convert and Create PDFs easily.
-Fast, secure and completely free.
-</p>
+<p>Merge, Convert, Compress and Extract PDFs easily</p>
 
 </div>
 
 <div class="tools">
 
 <div class="card">
+
 <h3>Merge PDF</h3>
+
 <form method="POST" enctype="multipart/form-data">
+
 <input type="hidden" name="tool" value="merge">
+
 <input type="file" name="files" multiple required>
-<br>
-<button>Process</button>
+
+<button>Merge</button>
+
 </form>
+
 </div>
 
 <div class="card">
+
 <h3>Compress PDF</h3>
+
 <form method="POST" enctype="multipart/form-data">
+
 <input type="hidden" name="tool" value="compress">
-<input type="file" name="files" required>
-<br>
-<button>Process</button>
+
+<input type="file" name="files" multiple required>
+
+<button>Compress</button>
+
 </form>
+
 </div>
 
 <div class="card">
+
 <h3>PDF → Word</h3>
+
 <form method="POST" enctype="multipart/form-data">
+
 <input type="hidden" name="tool" value="pdf2word">
-<input type="file" name="files" required>
-<br>
-<button>Process</button>
+
+<input type="file" name="files" multiple required>
+
+<button>Convert</button>
+
 </form>
+
 </div>
 
 <div class="card">
+
 <h3>Word → PDF</h3>
+
 <form method="POST" enctype="multipart/form-data">
+
 <input type="hidden" name="tool" value="word2pdf">
-<input type="file" name="files" required>
-<br>
-<button>Process</button>
+
+<input type="file" name="files" multiple required>
+
+<button>Convert</button>
+
 </form>
+
 </div>
 
 <div class="card">
-<h3>ZIP Images → PDF</h3>
+
+<h3>ZIP → Extract PDFs</h3>
+
 <form method="POST" enctype="multipart/form-data">
-<input type="hidden" name="tool" value="zip2pdf">
-<input type="file" name="files" required>
-<br>
-<button>Process</button>
+
+<input type="hidden" name="tool" value="zipextract">
+
+<input type="file" name="files" multiple required>
+
+<button>Extract</button>
+
 </form>
-</div>
 
 </div>
 
-<footer>
-
-GKZIPDF © 2026 — Free Online PDF Tools
-
-</footer>
+</div>
 
 </body>
 </html>
@@ -185,12 +185,12 @@ def home():
 
     if request.method == "POST":
 
-        tool = request.form["tool"]
-        files = request.files.getlist("files")
+        tool=request.form["tool"]
+        files=request.files.getlist("files")
 
-        if tool == "merge":
+        if tool=="merge":
 
-            merger = PdfMerger()
+            merger=PdfMerger()
 
             for f in files:
                 merger.append(f)
@@ -203,16 +203,12 @@ def home():
 
         if tool=="compress":
 
-            input_pdf=files[0]
-
-            temp="/tmp/temp.pdf"
-            output="/tmp/compressed.pdf"
-
-            with open(temp,"wb") as f:
-                f.write(input_pdf.read())
-
             merger=PdfMerger()
-            merger.append(temp)
+
+            for f in files:
+                merger.append(f)
+
+            output="/tmp/compressed.pdf"
             merger.write(output)
             merger.close()
 
@@ -220,62 +216,96 @@ def home():
 
         if tool=="pdf2word":
 
-            input_pdf=files[0]
+            zip_buffer=io.BytesIO()
 
-            temp="/tmp/temp.pdf"
-            output="/tmp/converted.docx"
+            with zipfile.ZipFile(zip_buffer,"w") as zip_file:
 
-            with open(temp,"wb") as f:
-                f.write(input_pdf.read())
+                for f in files:
 
-            cv=Converter(temp)
-            cv.convert(output)
-            cv.close()
+                    temp="/tmp/temp.pdf"
 
-            return send_file(output,as_attachment=True)
+                    with open(temp,"wb") as t:
+                        t.write(f.read())
+
+                    output="/tmp/converted.docx"
+
+                    cv=Converter(temp)
+                    cv.convert(output)
+                    cv.close()
+
+                    with open(output,"rb") as d:
+                        zip_file.writestr(f.filename.replace(".pdf",".docx"),d.read())
+
+            return send_file(
+                io.BytesIO(zip_buffer.getvalue()),
+                download_name="converted_docs.zip",
+                as_attachment=True
+            )
 
         if tool=="word2pdf":
 
-            file=files[0]
-            document=Document(file)
+            zip_buffer=io.BytesIO()
 
-            output="/tmp/converted.pdf"
+            with zipfile.ZipFile(zip_buffer,"w") as zip_file:
 
-            c=canvas.Canvas(output)
+                for f in files:
 
-            y=800
+                    document=Document(f)
 
-            for para in document.paragraphs:
-                c.drawString(50,y,para.text)
-                y-=20
+                    output="/tmp/out.pdf"
 
-            c.save()
+                    c=canvas.Canvas(output)
 
-            return send_file(output,as_attachment=True)
+                    y=800
 
-        if tool=="zip2pdf":
+                    for para in document.paragraphs:
+                        c.drawString(50,y,para.text)
+                        y-=20
 
-            file=files[0]
+                    c.save()
 
-            with zipfile.ZipFile(file,"r") as zip_ref:
+                    with open(output,"rb") as d:
+                        zip_file.writestr(f.filename.replace(".docx",".pdf"),d.read())
 
-                images=[]
+            return send_file(
+                io.BytesIO(zip_buffer.getvalue()),
+                download_name="converted_pdfs.zip",
+                as_attachment=True
+            )
 
-                for name in zip_ref.namelist():
+        if tool=="zipextract":
 
-                    if name.lower().endswith((".png",".jpg",".jpeg")):
+            all_pdfs=[]
+            names=set()
 
-                        data=zip_ref.read(name)
+            for uploaded_file in files:
 
-                        img=Image.open(io.BytesIO(data)).convert("RGB")
+                with zipfile.ZipFile(uploaded_file,"r") as zip_ref:
 
-                        images.append(img)
+                    for file in zip_ref.namelist():
 
-                output="/tmp/images.pdf"
+                        if file.lower().endswith(".pdf"):
 
-                if images:
-                    images[0].save(output,save_all=True,append_images=images[1:])
-                    return send_file(output,as_attachment=True)
+                            if file not in names:
+
+                                data=zip_ref.read(file)
+
+                                all_pdfs.append((file,data))
+
+                                names.add(file)
+
+            zip_buffer=io.BytesIO()
+
+            with zipfile.ZipFile(zip_buffer,"w") as zip_file:
+
+                for name,data in all_pdfs:
+                    zip_file.writestr(name,data)
+
+            return send_file(
+                io.BytesIO(zip_buffer.getvalue()),
+                download_name="extracted_pdfs.zip",
+                as_attachment=True
+            )
 
     return render_template_string(HTML)
 

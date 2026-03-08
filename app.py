@@ -1,85 +1,142 @@
-import streamlit as st
+from flask import Flask, render_template_string, request, send_file
+import os
 import zipfile
+from PyPDF2 import PdfMerger
+from pdf2docx import Converter
+from docx import Document
+from reportlab.pdfgen import canvas
+from PIL import Image
 import io
-import pandas as pd
 
-st.set_page_config(page_title="GK ZIP to PDF Extractor", page_icon="📦", layout="wide")
+app = Flask(__name__)
 
-st.title("📦 GK ZIP to PDF Extractor")
-st.caption("Upload one or multiple ZIP files and extract all PDF files instantly")
+HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+<title>GKZIPDF Tools</title>
+<style>
+body{font-family:Arial;background:#f4f4f4;text-align:center;padding:40px}
+.container{background:white;padding:30px;border-radius:10px;width:400px;margin:auto}
+select,input,button{margin:10px;padding:10px;width:90%}
+</style>
+</head>
+<body>
 
-uploaded_files = st.file_uploader(
-    "Upload ZIP files",
-    type="zip",
-    accept_multiple_files=True
-)
+<div class="container">
+<h2>GKZIPDF Tools</h2>
 
-all_pdfs = []
-pdf_names = set()
-zip_summary = []
+<form method="POST" enctype="multipart/form-data">
 
-if uploaded_files:
+<select name="tool">
+<option value="merge">Merge PDF</option>
+<option value="compress">Compress PDF</option>
+<option value="pdf2word">PDF to Word</option>
+<option value="word2pdf">Word to PDF</option>
+<option value="zip2pdf">ZIP Images to PDF</option>
+</select>
 
-    progress = st.progress(0)
-    total = len(uploaded_files)
+<input type="file" name="files" multiple required>
 
-    for i, uploaded_file in enumerate(uploaded_files):
+<button type="submit">Process</button>
 
-        count = 0
+</form>
+</div>
 
-        try:
-            with zipfile.ZipFile(uploaded_file, 'r') as zip_ref:
+</body>
+</html>
+"""
 
-                for file in zip_ref.namelist():
+@app.route("/", methods=["GET","POST"])
+def home():
 
-                    if file.lower().endswith(".pdf"):
+    if request.method == "POST":
 
-                        if file not in pdf_names:   # remove duplicates
-                            pdf_data = zip_ref.read(file)
-                            all_pdfs.append((file, pdf_data))
-                            pdf_names.add(file)
+        tool = request.form["tool"]
+        files = request.files.getlist("files")
 
-                        count += 1
+        if tool == "merge":
 
-        except:
-            st.error(f"Error reading {uploaded_file.name}")
+            merger = PdfMerger()
 
-        zip_summary.append({
-            "ZIP File": uploaded_file.name,
-            "PDF Files Found": count
-        })
+            for f in files:
+                merger.append(f)
 
-        progress.progress((i + 1) / total)
+            output = "merged.pdf"
+            merger.write(output)
+            merger.close()
 
-if uploaded_files:
+            return send_file(output, as_attachment=True)
 
-    st.subheader("📊 ZIP File Summary")
-    st.dataframe(pd.DataFrame(zip_summary), use_container_width=True)
+        elif tool == "compress":
 
-if all_pdfs:
+            # simple compression (re-saving)
+            input_pdf = files[0]
+            output = "compressed.pdf"
 
-    st.success(f"✅ {len(all_pdfs)} Unique PDF files extracted")
+            with open("temp.pdf","wb") as f:
+                f.write(input_pdf.read())
 
-    pdf_table = pd.DataFrame({
-        "PDF File Name": [name for name, _ in all_pdfs]
-    })
+            merger = PdfMerger()
+            merger.append("temp.pdf")
+            merger.write(output)
+            merger.close()
 
-    st.subheader("📄 Extracted PDFs")
-    st.dataframe(pdf_table, use_container_width=True)
+            return send_file(output, as_attachment=True)
 
-    zip_buffer = io.BytesIO()
+        elif tool == "pdf2word":
 
-    with zipfile.ZipFile(zip_buffer, "w") as zip_file:
-        for name, data in all_pdfs:
-            zip_file.writestr(name, data)
+            input_pdf = files[0]
 
-    st.download_button(
-        label="⬇ Download All PDFs",
-        data=zip_buffer.getvalue(),
-        file_name="extracted_pdfs.zip",
-        mime="application/zip"
-    )
+            with open("temp.pdf","wb") as f:
+                f.write(input_pdf.read())
 
-else:
-    if uploaded_files:
-        st.warning("No PDF files found in uploaded ZIP files.")
+            output = "converted.docx"
+
+            cv = Converter("temp.pdf")
+            cv.convert(output)
+            cv.close()
+
+            return send_file(output, as_attachment=True)
+
+        elif tool == "word2pdf":
+
+            file = files[0]
+
+            document = Document(file)
+
+            output = "converted.pdf"
+            c = canvas.Canvas(output)
+
+            y = 800
+            for para in document.paragraphs:
+                c.drawString(50,y,para.text)
+                y -= 20
+
+            c.save()
+
+            return send_file(output, as_attachment=True)
+
+        elif tool == "zip2pdf":
+
+            file = files[0]
+
+            with zipfile.ZipFile(file,"r") as zip_ref:
+
+                images = []
+                for name in zip_ref.namelist():
+
+                    data = zip_ref.read(name)
+                    img = Image.open(io.BytesIO(data)).convert("RGB")
+                    images.append(img)
+
+                output = "images.pdf"
+
+                images[0].save(output, save_all=True, append_images=images[1:])
+
+            return send_file(output, as_attachment=True)
+
+    return render_template_string(HTML)
+
+if __name__ == "__main__":
+    app.run()

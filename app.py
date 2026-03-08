@@ -1,5 +1,4 @@
 from flask import Flask, render_template_string, request, send_file
-import os
 import zipfile
 from PyPDF2 import PdfMerger
 from pdf2docx import Converter
@@ -65,10 +64,6 @@ background:#5a67d8;
 transform:scale(1.03);
 }
 
-input[type=file]{
-background:#f7f7f7;
-}
-
 </style>
 </head>
 
@@ -81,13 +76,11 @@ background:#f7f7f7;
 <form method="POST" enctype="multipart/form-data">
 
 <select name="tool">
-
 <option value="merge">Merge PDF</option>
 <option value="compress">Compress PDF</option>
 <option value="pdf2word">PDF to Word</option>
 <option value="word2pdf">Word to PDF</option>
 <option value="zip2pdf">ZIP Images to PDF</option>
-
 </select>
 
 <input type="file" name="files" multiple required>
@@ -117,7 +110,7 @@ def home():
             for f in files:
                 merger.append(f)
 
-            output = "merged.pdf"
+            output = "/tmp/merged.pdf"
             merger.write(output)
             merger.close()
 
@@ -125,15 +118,15 @@ def home():
 
         elif tool == "compress":
 
-            # simple compression (re-saving)
             input_pdf = files[0]
-            output = "compressed.pdf"
+            temp = "/tmp/temp.pdf"
+            output = "/tmp/compressed.pdf"
 
-            with open("temp.pdf","wb") as f:
+            with open(temp,"wb") as f:
                 f.write(input_pdf.read())
 
             merger = PdfMerger()
-            merger.append("temp.pdf")
+            merger.append(temp)
             merger.write(output)
             merger.close()
 
@@ -142,13 +135,13 @@ def home():
         elif tool == "pdf2word":
 
             input_pdf = files[0]
+            temp = "/tmp/temp.pdf"
+            output = "/tmp/converted.docx"
 
-            with open("temp.pdf","wb") as f:
+            with open(temp,"wb") as f:
                 f.write(input_pdf.read())
 
-            output = "converted.docx"
-
-            cv = Converter("temp.pdf")
+            cv = Converter(temp)
             cv.convert(output)
             cv.close()
 
@@ -160,7 +153,7 @@ def home():
 
             document = Document(file)
 
-            output = "converted.pdf"
+            output = "/tmp/converted.pdf"
             c = canvas.Canvas(output)
 
             y = 800
@@ -179,21 +172,22 @@ def home():
             with zipfile.ZipFile(file,"r") as zip_ref:
 
                 images = []
+
                 for name in zip_ref.namelist():
 
-                    data = zip_ref.read(name)
-                    img = Image.open(io.BytesIO(data)).convert("RGB")
-                    images.append(img)
+                    if name.lower().endswith((".png",".jpg",".jpeg")):
 
-                output = "images.pdf"
+                        data = zip_ref.read(name)
+                        img = Image.open(io.BytesIO(data)).convert("RGB")
+                        images.append(img)
 
-                images[0].save(output, save_all=True, append_images=images[1:])
+                output = "/tmp/images.pdf"
 
-            return send_file(output, as_attachment=True)
+                if images:
+                    images[0].save(output, save_all=True, append_images=images[1:])
+                    return send_file(output, as_attachment=True)
 
     return render_template_string(HTML)
 
 if __name__ == "__main__":
     app.run()
-
-

@@ -15,32 +15,87 @@ HTML = """
 <html>
 <head>
 <title>GKZIPDF Tools</title>
+
 <style>
-body{font-family:Arial;background:#f4f4f4;text-align:center;padding:40px}
-.container{background:white;padding:30px;border-radius:10px;width:400px;margin:auto}
-select,input,button{margin:10px;padding:10px;width:90%}
+
+body{
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: linear-gradient(135deg,#667eea,#764ba2);
+height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+margin:0;
+}
+
+.container{
+background:white;
+padding:40px;
+border-radius:12px;
+width:420px;
+text-align:center;
+box-shadow:0 10px 30px rgba(0,0,0,0.2);
+}
+
+h2{
+margin-bottom:20px;
+color:#333;
+}
+
+select,input,button{
+width:100%;
+padding:12px;
+margin-top:12px;
+border-radius:8px;
+border:1px solid #ddd;
+font-size:14px;
+}
+
+button{
+background:#667eea;
+color:white;
+border:none;
+cursor:pointer;
+font-weight:bold;
+transition:0.3s;
+}
+
+button:hover{
+background:#5a67d8;
+transform:scale(1.03);
+}
+
+input[type=file]{
+background:#f7f7f7;
+}
+
 </style>
 </head>
+
 <body>
 
 <div class="container">
-<h2>GKZIPDF Tools</h2>
+
+<h2>📄 GKZIPDF Tools</h2>
 
 <form method="POST" enctype="multipart/form-data">
 
 <select name="tool">
+
 <option value="merge">Merge PDF</option>
 <option value="compress">Compress PDF</option>
 <option value="pdf2word">PDF to Word</option>
 <option value="word2pdf">Word to PDF</option>
 <option value="zip2pdf">ZIP Images to PDF</option>
+
 </select>
 
 <input type="file" name="files" multiple required>
 
-<button type="submit">Process</button>
+<button type="submit">⚡ Process File</button>
 
 </form>
+
 </div>
 
 </body>
@@ -140,3 +195,4 @@ def home():
 
 if __name__ == "__main__":
     app.run()
+

@@ -11,12 +11,13 @@ from reportlab.pdfgen import canvas
 
 app = Flask(__name__)
 
-@app.route('/')
-def home():
-    return render_template("index.html")
+TEMP_DIR = "/tmp"
 
-@app.route("/", methods=["POST"])
-def process():
+@app.route("/", methods=["GET", "POST"])
+def home():
+
+    if request.method == "GET":
+        return render_template("index.html")
 
     tool = request.form.get("tool")
     files = request.files.getlist("files")
@@ -24,24 +25,24 @@ def process():
     if not files or files[0].filename == "":
         return "No files uploaded"
 
-    memory_file = io.BytesIO()
-
     # =============================
     # PDF MERGE
     # =============================
     if tool == "merge_pdf":
+
         merger = PdfMerger()
+        output = io.BytesIO()
 
         for f in files:
             merger.append(f)
 
-        merger.write(memory_file)
+        merger.write(output)
         merger.close()
 
-        memory_file.seek(0)
+        output.seek(0)
 
         return send_file(
-            memory_file,
+            output,
             download_name="merged.pdf",
             as_attachment=True
         )
@@ -57,26 +58,26 @@ def process():
 
             for f in files:
 
-                unique = str(uuid.uuid4())
+                uid = str(uuid.uuid4())
 
-                temp_pdf = "/tmp/temp_" + unique + ".pdf"
-                temp_docx = "/tmp/temp_" + unique + ".docx"
+                pdf_path = os.path.join(TEMP_DIR, uid + ".pdf")
+                docx_path = os.path.join(TEMP_DIR, uid + ".docx")
 
-                with open(temp_pdf, "wb") as t:
-                    t.write(f.read())
+                with open(pdf_path, "wb") as temp:
+                    temp.write(f.read())
 
-                cv = Converter(temp_pdf)
-                cv.convert(temp_docx)
+                cv = Converter(pdf_path)
+                cv.convert(docx_path)
                 cv.close()
 
-                with open(temp_docx, "rb") as d:
+                with open(docx_path, "rb") as d:
                     zip_file.writestr(
                         f.filename.replace(".pdf", ".docx"),
                         d.read()
                     )
 
-                os.remove(temp_pdf)
-                os.remove(temp_docx)
+                os.remove(pdf_path)
+                os.remove(docx_path)
 
         zip_buffer.seek(0)
 
@@ -97,17 +98,17 @@ def process():
 
             for f in files:
 
-                unique = str(uuid.uuid4())
+                uid = str(uuid.uuid4())
 
-                temp_docx = "/tmp/temp_" + unique + ".docx"
-                temp_pdf = "/tmp/temp_" + unique + ".pdf"
+                docx_path = os.path.join(TEMP_DIR, uid + ".docx")
+                pdf_path = os.path.join(TEMP_DIR, uid + ".pdf")
 
-                with open(temp_docx, "wb") as t:
-                    t.write(f.read())
+                with open(docx_path, "wb") as temp:
+                    temp.write(f.read())
 
-                doc = Document(temp_docx)
+                doc = Document(docx_path)
 
-                c = canvas.Canvas(temp_pdf)
+                c = canvas.Canvas(pdf_path)
 
                 y = 800
                 for para in doc.paragraphs:
@@ -119,14 +120,14 @@ def process():
 
                 c.save()
 
-                with open(temp_pdf, "rb") as p:
+                with open(pdf_path, "rb") as p:
                     zip_file.writestr(
                         f.filename.replace(".docx", ".pdf"),
                         p.read()
                     )
 
-                os.remove(temp_docx)
-                os.remove(temp_pdf)
+                os.remove(docx_path)
+                os.remove(pdf_path)
 
         zip_buffer.seek(0)
 
@@ -141,12 +142,12 @@ def process():
     # =============================
     elif tool == "extract_zip":
 
-        zip_file = zipfile.ZipFile(files[0])
+        uploaded_zip = zipfile.ZipFile(files[0])
         memory_zip = io.BytesIO()
 
         with zipfile.ZipFile(memory_zip, "w") as new_zip:
-            for file in zip_file.namelist():
-                new_zip.writestr(file, zip_file.read(file))
+            for file in uploaded_zip.namelist():
+                new_zip.writestr(file, uploaded_zip.read(file))
 
         memory_zip.seek(0)
 
@@ -160,5 +161,4 @@ def process():
 
 
 if __name__ == "__main__":
-    app.run()
-
+    app.run(debug=True)

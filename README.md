@@ -113,4 +113,4 @@ Works on all modern browsers that support:
 ## License
 
 MIT
-   
+   # GK PDF Tools

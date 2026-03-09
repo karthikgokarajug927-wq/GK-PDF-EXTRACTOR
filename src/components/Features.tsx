@@ -3,48 +3,48 @@ import { Upload, Zap, Files, Copy, Download, Shield } from 'lucide-react';
 
 const features = [
   {
-    name: 'Upload Multiple ZIP Files',
-    description: 'Drag and drop or select multiple ZIP files at once for batch processing.',
-    icon: Upload,
-  },
-  {
-    name: 'Automatic PDF Detection',
-    description: 'Intelligently scans and identifies all PDF files within your ZIP archives.',
+    name: 'Lightning Fast Processing',
+    description: 'Extract, merge, and convert documents in seconds with optimized performance.',
     icon: Zap,
   },
   {
-    name: 'Extract Hundreds of PDFs Fast',
-    description: 'Process large archives containing hundreds of PDF files in seconds.',
+    name: 'Batch Operations',
+    description: 'Process multiple files at once and save hours of manual work.',
     icon: Files,
   },
   {
-    name: 'Remove Duplicate Files',
-    description: 'Automatically detect and remove duplicate PDF files to save space.',
+    name: 'Drag & Drop Upload',
+    description: 'Simple intuitive interface - just drag files and drop them to get started.',
+    icon: Upload,
+  },
+  {
+    name: 'Secure & Private',
+    description: 'All processing happens in your browser. Your files never leave your device.',
+    icon: Shield,
+  },
+  {
+    name: 'Multiple Tools',
+    description: 'ZIP extraction, PDF merging, compression, and format conversion all in one.',
     icon: Copy,
   },
   {
-    name: 'One-Click Download',
-    description: 'Download all extracted PDFs as a single ZIP file with one click.',
+    name: 'Easy Downloads',
+    description: 'Download individual files or bulk downloads as ZIP archives.',
     icon: Download,
-  },
-  {
-    name: 'Secure Processing',
-    description: 'All files are processed locally in your browser. Nothing is uploaded to servers.',
-    icon: Shield,
   },
 ];
 
 export default function Features() {
   return (
-    <section className="bg-white py-24 sm:py-32">
+    <section className="bg-gray-50 py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-base font-semibold leading-7 text-gray-600">Everything You Need</h2>
+          <h2 className="text-base font-semibold leading-7 text-gray-600">Why Choose GK Tools</h2>
           <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            Powerful Features for PDF Extraction
+            Professional Document Processing
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-600">
-            Built for teams who need to process documents efficiently and securely.
+            Everything you need to handle documents like a pro. Fast, secure, and easy to use.
           </p>
         </div>
         <div className="mx-auto mt-16 max-w-7xl sm:mt-20 lg:mt-24">

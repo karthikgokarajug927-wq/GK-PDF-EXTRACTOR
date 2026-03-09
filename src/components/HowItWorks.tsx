@@ -3,20 +3,20 @@ import { Upload, ScanSearch, Download } from 'lucide-react';
 
 const steps = [
   {
-    name: 'Upload ZIP Files',
-    description: 'Drag and drop your ZIP files or click to browse. Upload multiple files at once.',
+    name: 'Upload Files',
+    description: 'Drag and drop your files or click to browse. Upload multiple files at once.',
     icon: Upload,
     step: '01',
   },
   {
-    name: 'Automatic Extraction',
-    description: 'Our system scans and extracts all PDF files automatically. Remove duplicates if needed.',
+    name: 'Tool Processes',
+    description: 'The tool automatically processes your files. Extract, merge, compress or convert instantly.',
     icon: ScanSearch,
     step: '02',
   },
   {
-    name: 'Download PDFs',
-    description: 'Download individual PDFs or get all extracted files in one ZIP archive instantly.',
+    name: 'Download Results',
+    description: 'Download your processed files individually or as a bulk archive. Easy and fast.',
     icon: Download,
     step: '03',
   },
@@ -32,7 +32,7 @@ export default function HowItWorks() {
             How It Works
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-600">
-            Extract PDFs from ZIP files in three simple steps. No technical knowledge required.
+            Process your documents in three simple steps. No technical knowledge required.
           </p>
         </div>
         <div className="mx-auto mt-16 max-w-7xl sm:mt-20 lg:mt-24">

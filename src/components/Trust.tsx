@@ -3,23 +3,23 @@ import { Clock, Users, Package, Lock } from 'lucide-react';
 
 const benefits = [
   {
-    name: 'Saves Hours of Manual Extraction',
-    description: 'Automate the tedious process of extracting PDFs from multiple ZIP files.',
+    name: 'Saves Hours of Manual Work',
+    description: 'Automate document processing and focus on what matters most for your business.',
     icon: Clock,
   },
   {
-    name: 'Perfect for Logistics & Operations Teams',
-    description: 'Designed for teams handling large volumes of documents and shipments.',
+    name: 'Perfect for Logistics Teams',
+    description: 'Designed for teams handling large volumes of documents and shipments daily.',
     icon: Users,
   },
   {
-    name: 'Works with Shipment Files',
-    description: 'Process delivery notes, invoices, and shipping documents efficiently.',
+    name: 'Handles Large Batches',
+    description: 'Process hundreds of documents in minutes. Built for scale and performance.',
     icon: Package,
   },
   {
-    name: 'Secure and Private',
-    description: 'All processing happens in your browser. Your files never leave your device.',
+    name: 'Secure File Processing',
+    description: 'All processing happens locally in your browser. Your files never leave your device.',
     icon: Lock,
   },
 ];
@@ -30,10 +30,10 @@ export default function Trust() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Trusted by Teams Worldwide
+            Why Teams Trust GK Tools
           </h2>
           <p className="mt-6 text-lg leading-8 text-gray-300">
-            Process documents faster and more efficiently with our powerful extraction tool.
+            Professional document processing that saves time and protects your privacy.
           </p>
         </div>
         <div className="mx-auto mt-16 max-w-7xl sm:mt-20 lg:mt-24">

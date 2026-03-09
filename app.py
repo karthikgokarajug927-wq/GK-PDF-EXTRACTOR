@@ -2,6 +2,8 @@ from flask import Flask, render_template_string, request, send_file
 import zipfile
 import io
 import base64
+import uuid
+import os
 from PyPDF2 import PdfMerger
 from pdf2docx import Converter
 from docx import Document
@@ -267,17 +269,22 @@ def home():
 
                 for f in files:
 
-                    temp_pdf=io.BytesIO(f.read())
+                    unique=str(uuid.uuid4())
+                    temp_pdf=f"temp_{unique}.pdf"
+                    temp_docx=f"temp_{unique}.docx"
 
-                    with open("temp.pdf","wb") as t:
-                        t.write(temp_pdf.getvalue())
+                    with open(temp_pdf,"wb") as t:
+                        t.write(f.read())
 
-                    cv=Converter("temp.pdf")
-                    cv.convert("temp.docx")
+                    cv=Converter(temp_pdf)
+                    cv.convert(temp_docx)
                     cv.close()
 
-                    with open("temp.docx","rb") as d:
+                    with open(temp_docx,"rb") as d:
                         zip_file.writestr(f.filename.replace(".pdf",".docx"),d.read())
+
+                    os.remove(temp_pdf)
+                    os.remove(temp_docx)
 
             zip_buffer.seek(0)
 

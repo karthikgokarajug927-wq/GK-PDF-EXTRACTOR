@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "buildCommand": null,
   "builds": [
     {
       "src": "app.py",
@@ -12,10 +11,5 @@
       "src": "/(.*)",
       "dest": "app.py"
     }
-  ],
-  "functions": {
-    "app.py": {
-      "maxDuration": 60
-    }
-  }
+  ]
 }

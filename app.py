@@ -59,9 +59,8 @@ def process():
 
                 unique = str(uuid.uuid4())
 
-                temp_pdf = f"/tmp/temp_{unique}.pdf"
-                temp_docx = f"/tmp/temp_{unique}.docx"
-
+                temp_pdf = "/tmp/temp.pdf"
+temp_docx = "/tmp/temp.docx"
                 with open(temp_pdf, "wb") as t:
                     t.write(f.read())
 
@@ -99,8 +98,8 @@ def process():
 
                 unique = str(uuid.uuid4())
 
-                temp_docx = f"/tmp/temp_{unique}.docx"
-                temp_pdf = f"/tmp/temp_{unique}.pdf"
+                temp_docx = "/tmp/temp.docx"
+temp_pdf = "/tmp/temp.pdf"
 
                 with open(temp_docx, "wb") as t:
                     t.write(f.read())
@@ -161,3 +160,4 @@ def process():
 
 if __name__ == "__main__":
     app.run()
+

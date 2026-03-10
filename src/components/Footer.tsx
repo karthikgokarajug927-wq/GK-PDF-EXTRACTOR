@@ -9,7 +9,7 @@ export default function Footer() {
     ],
     support: [
       { name: 'Documentation', href: '#' },
-      { name: 'Contact', href: '#' },
+      { name: 'Contact', href: 'mailto:karthikgokaraju.g927@gmail.com' },
       { name: 'FAQ', href: '#' },
     ],
     legal: [
@@ -25,14 +25,19 @@ export default function Footer() {
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
           <div className="space-y-4">
             <div>
-              <h3 className="text-2xl font-bold text-gray-900">GK PDF Extractor</h3>
+              <h3 className="text-2xl font-bold text-gray-900">GK Tools</h3>
               <p className="mt-2 text-sm text-gray-600">
-                Extract PDFs from ZIP files instantly.
+                Professional document processing tools for modern teams.
               </p>
             </div>
-            <p className="text-sm text-gray-500">
-              Made with precision by GK Tools
-            </p>
+            <div className="space-y-2">
+              <p className="text-sm text-gray-500">
+                Made with precision by GK Tools
+              </p>
+              <a href="mailto:karthikgokaraju.g927@gmail.com" className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium">
+                karthikgokaraju.g927@gmail.com
+              </a>
+            </div>
           </div>
           <div className="mt-16 grid grid-cols-2 gap-8 xl:col-span-2 xl:mt-0">
             <div className="md:grid md:grid-cols-2 md:gap-8">

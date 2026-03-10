@@ -3,19 +3,17 @@ import zipfile
 import io
 import uuid
 import os
-from PyPDF2 import PdfMerger
+from PyPDF2 import PdfMerger, PdfReader, PdfWriter
 from pdf2docx import Converter
 from docx import Document
 from reportlab.pdfgen import canvas
 
 app = Flask(__name__)
 
-# /tmp is the ONLY writable directory in Vercel's serverless environment
 TEMP_DIR = "/tmp"
 
 
 def temp_path(ext):
-    """Generate a safe temp file path under /tmp"""
     return os.path.join(TEMP_DIR, str(uuid.uuid4()) + ext)
 
 
@@ -48,7 +46,35 @@ def home():
         )
 
     # =============================
-    # PDF → WORD (direct .docx download)
+    # COMPRESS PDF
+    # =============================
+    elif tool == "compress_pdf":
+        f = files[0]
+        reader = PdfReader(f)
+        writer = PdfWriter()
+
+        for page in reader.pages:
+            page.compress_content_streams()
+            writer.add_page(page)
+
+        # Copy metadata
+        if reader.metadata:
+            writer.add_metadata(reader.metadata)
+
+        output = io.BytesIO()
+        writer.write(output)
+        output.seek(0)
+
+        original_name = f.filename or "file.pdf"
+        download_name = original_name.replace(".pdf", "_compressed.pdf")
+        return send_file(
+            output,
+            download_name=download_name,
+            as_attachment=True
+        )
+
+    # =============================
+    # PDF TO WORD
     # =============================
     elif tool == "pdf_to_word":
         f = files[0]
@@ -77,7 +103,7 @@ def home():
         )
 
     # =============================
-    # WORD → PDF (direct .pdf download)
+    # WORD TO PDF
     # =============================
     elif tool == "word_to_pdf":
         f = files[0]

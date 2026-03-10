@@ -187,7 +187,7 @@
   <div class="tool-panel" id="panel-extract">
     <h3>ZIP → Extract PDFs</h3>
     <form onsubmit="handleSubmit(event, 'extract', 'extract_zip')">
-      <div class="file-drop"><input type="file" name="files" accept=".zip" required onchange="showFileName(event,'extract')"/>
+      <div class="file-drop"><input type="file" name="files" accept=".zip" multiple required onchange="showFileName(event,'extract')"/>
         <div class="file-drop-icon">🗜️</div>
         <p><strong>Click to upload</strong> or drag and drop</p><p>ZIP files only</p>
         <div class="file-name" id="fname-extract"></div>
@@ -310,7 +310,7 @@
       <div class="logo">GK Tools</div>
       <p>Professional document processing tools for modern teams.</p>
       <p style="margin-bottom:8px;font-size:12px;color:#9ca3af;">Made with precision by GK Tools</p>
-      <a href="mailto:karthikgokaraju.g927@gmail.com">karthikgokaraju.g927@gmail.com</a>
+      <a href="/cdn-cgi/l/email-protection#9bf0fae9eff3f2f0fcf4f0fae9faf1eeb5fca2a9acdbfcf6faf2f7b5f8f4f6"><span class="__cf_email__" data-cfemail="7a111b080e1213111d15111b081b100f541d43484d3a1d171b131654191517">[email&#160;protected]</span></a>
     </div>
     <div class="footer-col">
       <h5>Product</h5>
@@ -318,7 +318,7 @@
     </div>
     <div class="footer-col">
       <h5>Support</h5>
-      <ul><li><a href="#how">Documentation</a></li><li><a href="mailto:karthikgokaraju.g927@gmail.com">Contact</a></li></ul>
+      <ul><li><a href="#how">Documentation</a></li><li><a href="/cdn-cgi/l/email-protection#167d7764627e7f7d71797d7764777c6338712f242156717b777f7a3875797b">Contact</a></li></ul>
     </div>
     <div class="footer-col">
       <h5>Legal</h5>
@@ -328,7 +328,7 @@
   <div class="footer-bottom">© 2026 GK Tools. All rights reserved.</div>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   let activePanel = null;
   function openTool(id) {
     if (activePanel && activePanel !== id) {
@@ -368,15 +368,4 @@
       a.download = match ? match[1].replace(/['"]/g, '') : 'download';
       a.href = url; document.body.appendChild(a); a.click();
       document.body.removeChild(a); URL.revokeObjectURL(url);
-      status.textContent = '✅ Done! Your file has been downloaded.';
-      status.className = 'status-msg success';
-    } catch (err) {
-      status.textContent = '❌ Error: ' + err.message;
-      status.className = 'status-msg error';
-    } finally {
-      btn.disabled = false; btn.textContent = 'Process File →';
-    }
-  }
-</script>
-</body>
-</html>
+      status.textContent = '✅ Done! Y

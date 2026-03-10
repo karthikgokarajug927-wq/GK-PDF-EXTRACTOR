@@ -48,77 +48,64 @@ def home():
         )
 
     # =============================
-    # PDF → WORD
+    # PDF → WORD (direct .docx download)
     # =============================
     elif tool == "pdf_to_word":
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, "w") as zip_file:
-            for f in files:
-                # Must use /tmp — pdf2docx requires real file paths
-                pdf_path = temp_path(".pdf")
-                docx_path = temp_path(".docx")
-                try:
-                    with open(pdf_path, "wb") as temp:
-                        temp.write(f.read())
-                    cv = Converter(pdf_path)
-                    cv.convert(docx_path)
-                    cv.close()
-                    with open(docx_path, "rb") as d:
-                        zip_file.writestr(
-                            f.filename.replace(".pdf", ".docx"),
-                            d.read()
-                        )
-                finally:
-                    if os.path.exists(pdf_path):
-                        os.remove(pdf_path)
-                    if os.path.exists(docx_path):
-                        os.remove(docx_path)
+        f = files[0]
+        pdf_path = temp_path(".pdf")
+        docx_path = temp_path(".docx")
+        try:
+            with open(pdf_path, "wb") as temp:
+                temp.write(f.read())
+            cv = Converter(pdf_path)
+            cv.convert(docx_path)
+            cv.close()
+            with open(docx_path, "rb") as d:
+                docx_buffer = io.BytesIO(d.read())
+        finally:
+            if os.path.exists(pdf_path):
+                os.remove(pdf_path)
+            if os.path.exists(docx_path):
+                os.remove(docx_path)
 
-        zip_buffer.seek(0)
+        docx_buffer.seek(0)
+        download_name = f.filename.replace(".pdf", ".docx")
         return send_file(
-            zip_buffer,
-            download_name="converted_word_files.zip",
+            docx_buffer,
+            download_name=download_name,
             as_attachment=True
         )
 
     # =============================
-    # WORD → PDF
+    # WORD → PDF (direct .pdf download)
     # =============================
     elif tool == "word_to_pdf":
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, "w") as zip_file:
-            for f in files:
-                docx_path = temp_path(".docx")
-                try:
-                    with open(docx_path, "wb") as temp:
-                        temp.write(f.read())
-                    doc = Document(docx_path)
+        f = files[0]
+        docx_path = temp_path(".docx")
+        try:
+            with open(docx_path, "wb") as temp:
+                temp.write(f.read())
+            doc = Document(docx_path)
 
-                    # Write PDF to BytesIO — no need for a temp file
-                    pdf_buffer = io.BytesIO()
-                    c = canvas.Canvas(pdf_buffer)
+            pdf_buffer = io.BytesIO()
+            c = canvas.Canvas(pdf_buffer)
+            y = 800
+            for para in doc.paragraphs:
+                c.drawString(40, y, para.text)
+                y -= 20
+                if y < 40:
+                    c.showPage()
                     y = 800
-                    for para in doc.paragraphs:
-                        c.drawString(40, y, para.text)
-                        y -= 20
-                        if y < 40:
-                            c.showPage()
-                            y = 800
-                    c.save()
-                    pdf_buffer.seek(0)
+            c.save()
+            pdf_buffer.seek(0)
+        finally:
+            if os.path.exists(docx_path):
+                os.remove(docx_path)
 
-                    zip_file.writestr(
-                        f.filename.replace(".docx", ".pdf"),
-                        pdf_buffer.read()
-                    )
-                finally:
-                    if os.path.exists(docx_path):
-                        os.remove(docx_path)
-
-        zip_buffer.seek(0)
+        download_name = f.filename.replace(".docx", ".pdf")
         return send_file(
-            zip_buffer,
-            download_name="converted_pdf_files.zip",
+            pdf_buffer,
+            download_name=download_name,
             as_attachment=True
         )
 
@@ -143,4 +130,3 @@ def home():
 
 if __name__ == "__main__":
     app.run(debug=True)
-

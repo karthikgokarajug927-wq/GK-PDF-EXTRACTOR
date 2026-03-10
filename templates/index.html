@@ -1,14 +1,193 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Extract PDFs from ZIP files instantly. Upload ZIP files and download all PDFs in seconds." />
-    <title>GK PDF Extractor - Extract PDFs from ZIP Files</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Merge, Convert, Compress and Extract PDFs easily" />
+  <title>GKZIPDF - Smart PDF Tools</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      min-height: 100vh;
+    }
+    header {
+      padding: 16px 32px;
+      background: #111;
+      border-bottom: 1px solid #222;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 18px;
+    }
+    header span { font-size: 22px; }
+    .hero {
+      text-align: center;
+      padding: 60px 20px 40px;
+    }
+    .hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 12px; }
+    .hero p { color: #aaa; font-size: 1.1rem; }
+    .tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      padding: 20px 32px 60px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 28px 24px;
+      width: 220px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .card h2 { font-size: 1rem; font-weight: 700; }
+    .card input[type="file"] {
+      font-size: 13px;
+      color: #ccc;
+      width: 100%;
+    }
+    .card button {
+      background: #fff;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .card button:hover { background: #ddd; }
+    .status {
+      font-size: 12px;
+      color: #888;
+      min-height: 16px;
+    }
+    .loading { color: #f0a500; }
+    .success { color: #4caf50; }
+    .error-msg { color: #f44336; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span>📄</span> GKZIPDF
+</header>
+
+<div class="hero">
+  <h1>Smart PDF Tools</h1>
+  <p>Merge, Convert, Compress and Extract PDFs easily</p>
+</div>
+
+<div class="tools">
+
+  <!-- Merge PDF -->
+  <div class="card">
+    <h2>Merge PDF</h2>
+    <form id="mergeForm">
+      <input type="file" name="files" multiple accept=".pdf" required />
+      <input type="hidden" name="tool" value="merge_pdf" />
+      <br/><br/>
+      <button type="submit">Merge</button>
+    </form>
+    <div class="status" id="mergeStatus"></div>
+  </div>
+
+  <!-- Compress PDF -->
+  <div class="card">
+    <h2>Compress PDF</h2>
+    <form id="compressForm">
+      <input type="file" name="files" multiple accept=".pdf" required />
+      <input type="hidden" name="tool" value="compress_pdf" />
+      <br/><br/>
+      <button type="submit">Compress</button>
+    </form>
+    <div class="status" id="compressStatus"></div>
+  </div>
+
+  <!-- PDF to Word -->
+  <div class="card">
+    <h2>PDF → Word</h2>
+    <form id="pdfToWordForm">
+      <input type="file" name="files" multiple accept=".pdf" required />
+      <input type="hidden" name="tool" value="pdf_to_word" />
+      <br/><br/>
+      <button type="submit">Convert</button>
+    </form>
+    <div class="status" id="pdfToWordStatus"></div>
+  </div>
+
+  <!-- Word to PDF -->
+  <div class="card">
+    <h2>Word → PDF</h2>
+    <form id="wordToPdfForm">
+      <input type="file" name="files" multiple accept=".docx" required />
+      <input type="hidden" name="tool" value="word_to_pdf" />
+      <br/><br/>
+      <button type="submit">Convert</button>
+    </form>
+    <div class="status" id="wordToPdfStatus"></div>
+  </div>
+
+  <!-- ZIP Extract -->
+  <div class="card">
+    <h2>ZIP → Extract PDFs</h2>
+    <form id="extractForm">
+      <input type="file" name="files" accept=".zip" required />
+      <input type="hidden" name="tool" value="extract_zip" />
+      <br/><br/>
+      <button type="submit">Extract</button>
+    </form>
+    <div class="status" id="extractStatus"></div>
+  </div>
+
+</div>
+
+<script>
+  function handleForm(formId, statusId) {
+    document.getElementById(formId).addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const status = document.getElementById(statusId);
+      status.textContent = 'Processing...';
+      status.className = 'status loading';
+
+      const formData = new FormData(this);
+      try {
+        const response = await fetch('/', { method: 'POST', body: formData });
+        if (!response.ok) throw new Error('Server error');
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const disposition = response.headers.get('Content-Disposition') || '';
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        a.download = match ? match[1] : 'download';
+        a.href = url;
+        a.click();
+        URL.revokeObjectURL(url);
+        status.textContent = 'Done! File downloaded.';
+        status.className = 'status success';
+      } catch (err) {
+        status.textContent = 'Error: ' + err.message;
+        status.className = 'status error-msg';
+      }
+    });
+  }
+
+  handleForm('mergeForm', 'mergeStatus');
+  handleForm('compressForm', 'compressStatus');
+  handleForm('pdfToWordForm', 'pdfToWordStatus');
+  handleForm('wordToPdfForm', 'wordToPdfStatus');
+  handleForm('extractForm', 'extractStatus');
+</script>
+
+</body>
 </html>

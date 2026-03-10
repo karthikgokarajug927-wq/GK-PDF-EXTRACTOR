@@ -133,17 +133,17 @@
   <h1>Smart PDF Tools<br>for Everyone, <em>Instantly</em></h1>
   <p>Merge, convert, compress and extract PDFs in seconds. No installation required.</p>
   <div class="hero-buttons">
-    <a href="#tools" class="btn-primary">Get Started →</a>
-    <a href="#how" class="btn-secondary">See How It Works →</a>
+    <a href="#tools" class="btn-primary">Get Started &rarr;rarr;</a>
+    <a href="#how" class="btn-secondary">See How It Works &rarr;rarr;</a>
   </div>
   <div class="hero-illustration">
     <div>
-      <div class="hero-icon-box light">🗜️</div>
+      <div class="hero-icon-box light">[ZIP]</div>
       <div class="hero-icon-label">Your File</div>
     </div>
-    <div class="hero-arrow">→</div>
+    <div class="hero-arrow">&rarr;rarr;</div>
     <div>
-      <div class="hero-icon-box dark" style="color:#fff">📄</div>
+      <div class="hero-icon-box dark" style="color:#fff">[PDF]</div>
       <div class="hero-icon-label">Processed File</div>
     </div>
   </div>
@@ -158,41 +158,41 @@
 
   <div class="tools-grid">
     <div class="tool-card" onclick="openTool('extract')">
-      <h3>ZIP → Extract PDFs</h3>
+      <h3>ZIP &rarr;rarr; Extract PDFs</h3>
       <p>Extract all PDF files from ZIP archives instantly.</p>
-      <span class="open-tool">Open Tool →</span>
+      <span class="open-tool">Open Tool &rarr;rarr;</span>
     </div>
     <div class="tool-card" onclick="openTool('merge')">
       <h3>Merge PDFs</h3>
       <p>Combine multiple PDF files into one document.</p>
-      <span class="open-tool">Open Tool →</span>
+      <span class="open-tool">Open Tool &rarr;rarr;</span>
     </div>
     <div class="tool-card" onclick="openTool('compress')">
       <h3>Compress PDF</h3>
       <p>Reduce PDF file size while maintaining quality.</p>
-      <span class="open-tool">Open Tool →</span>
+      <span class="open-tool">Open Tool &rarr;rarr;</span>
     </div>
     <div class="tool-card" onclick="openTool('pdf_to_word')">
-      <h3>PDF → Word</h3>
+      <h3>PDF &rarr;rarr; Word</h3>
       <p>Convert PDF files to editable Word documents.</p>
-      <span class="open-tool">Open Tool →</span>
+      <span class="open-tool">Open Tool &rarr;rarr;</span>
     </div>
     <div class="tool-card" onclick="openTool('word_to_pdf')">
-      <h3>Word → PDF</h3>
+      <h3>Word &rarr;rarr; PDF</h3>
       <p>Convert Word documents to PDF format.</p>
-      <span class="open-tool">Open Tool →</span>
+      <span class="open-tool">Open Tool &rarr;rarr;</span>
     </div>
   </div>
 
   <div class="tool-panel" id="panel-extract">
-    <h3>ZIP → Extract PDFs</h3>
+    <h3>ZIP &rarr;rarr; Extract PDFs</h3>
     <form onsubmit="handleSubmit(event, 'extract', 'extract_zip')">
       <div class="file-drop"><input type="file" name="files" accept=".zip" multiple required onchange="showFileName(event,'extract')"/>
-        <div class="file-drop-icon">🗜️</div>
+        <div class="file-drop-icon">[ZIP]</div>
         <p><strong>Click to upload</strong> or drag and drop</p><p>ZIP files only</p>
         <div class="file-name" id="fname-extract"></div>
       </div>
-      <button type="submit" class="submit-btn" id="btn-extract">Extract PDFs →</button>
+      <button type="submit" class="submit-btn" id="btn-extract">Extract PDFs &rarr;rarr;</button>
       <div class="status-msg" id="status-extract"></div>
     </form>
   </div>
@@ -201,11 +201,11 @@
     <h3>Merge PDFs</h3>
     <form onsubmit="handleSubmit(event, 'merge', 'merge_pdf')">
       <div class="file-drop"><input type="file" name="files" accept=".pdf" multiple required onchange="showFileName(event,'merge')"/>
-        <div class="file-drop-icon">📄</div>
+        <div class="file-drop-icon">[PDF]</div>
         <p><strong>Click to upload</strong> multiple PDFs</p><p>Select 2 or more PDF files</p>
         <div class="file-name" id="fname-merge"></div>
       </div>
-      <button type="submit" class="submit-btn" id="btn-merge">Merge PDFs →</button>
+      <button type="submit" class="submit-btn" id="btn-merge">Merge PDFs &rarr;rarr;</button>
       <div class="status-msg" id="status-merge"></div>
     </form>
   </div>
@@ -214,37 +214,37 @@
     <h3>Compress PDF</h3>
     <form onsubmit="handleSubmit(event, 'compress', 'compress_pdf')">
       <div class="file-drop"><input type="file" name="files" accept=".pdf" required onchange="showFileName(event,'compress')"/>
-        <div class="file-drop-icon">🗜️</div>
+        <div class="file-drop-icon">[ZIP]</div>
         <p><strong>Click to upload</strong> or drag and drop</p><p>PDF files only</p>
         <div class="file-name" id="fname-compress"></div>
       </div>
-      <button type="submit" class="submit-btn" id="btn-compress">Compress PDF →</button>
+      <button type="submit" class="submit-btn" id="btn-compress">Compress PDF &rarr;rarr;</button>
       <div class="status-msg" id="status-compress"></div>
     </form>
   </div>
 
   <div class="tool-panel" id="panel-pdf_to_word">
-    <h3>PDF → Word</h3>
+    <h3>PDF &rarr;rarr; Word</h3>
     <form onsubmit="handleSubmit(event, 'pdf_to_word', 'pdf_to_word')">
       <div class="file-drop"><input type="file" name="files" accept=".pdf" required onchange="showFileName(event,'pdf_to_word')"/>
-        <div class="file-drop-icon">📝</div>
+        <div class="file-drop-icon">[DOC]</div>
         <p><strong>Click to upload</strong> or drag and drop</p><p>PDF files only</p>
         <div class="file-name" id="fname-pdf_to_word"></div>
       </div>
-      <button type="submit" class="submit-btn" id="btn-pdf_to_word">Convert to Word →</button>
+      <button type="submit" class="submit-btn" id="btn-pdf_to_word">Convert to Word &rarr;rarr;</button>
       <div class="status-msg" id="status-pdf_to_word"></div>
     </form>
   </div>
 
   <div class="tool-panel" id="panel-word_to_pdf">
-    <h3>Word → PDF</h3>
+    <h3>Word &rarr;rarr; PDF</h3>
     <form onsubmit="handleSubmit(event, 'word_to_pdf', 'word_to_pdf')">
       <div class="file-drop"><input type="file" name="files" accept=".docx" required onchange="showFileName(event,'word_to_pdf')"/>
-        <div class="file-drop-icon">📄</div>
+        <div class="file-drop-icon">[PDF]</div>
         <p><strong>Click to upload</strong> or drag and drop</p><p>DOCX files only</p>
         <div class="file-name" id="fname-word_to_pdf"></div>
       </div>
-      <button type="submit" class="submit-btn" id="btn-word_to_pdf">Convert to PDF →</button>
+      <button type="submit" class="submit-btn" id="btn-word_to_pdf">Convert to PDF &rarr;rarr;</button>
       <div class="status-msg" id="status-word_to_pdf"></div>
     </form>
   </div>
@@ -259,19 +259,19 @@
   <div class="steps">
     <div class="step">
       <span class="step-num">01</span>
-      <div class="step-icon">⬆️</div>
+      <div class="step-icon">&uarr;</div>
       <h4>Upload Your Files</h4>
       <p>Drag and drop your files or click to browse. Upload multiple files at once.</p>
     </div>
     <div class="step">
       <span class="step-num">02</span>
-      <div class="step-icon">⚙️</div>
+      <div class="step-icon">Process</div>
       <h4>Automatic Processing</h4>
       <p>Our system processes your files automatically. Fast and accurate every time.</p>
     </div>
     <div class="step">
       <span class="step-num">03</span>
-      <div class="step-icon">⬇️</div>
+      <div class="step-icon">&darr;</div>
       <h4>Download Result</h4>
       <p>Download your converted or processed file instantly. Ready to use.</p>
     </div>
@@ -286,19 +286,19 @@
   </div>
   <div class="features-grid">
     <div class="feature-item">
-      <div class="feature-icon">⏱️</div>
+      <div class="feature-icon"></div>
       <div><h4>Saves Hours of Manual Work</h4><p>Automate the tedious process of converting and extracting documents from multiple files.</p></div>
     </div>
     <div class="feature-item">
-      <div class="feature-icon">👥</div>
+      <div class="feature-icon"></div>
       <div><h4>Perfect for Logistics & Operations Teams</h4><p>Designed for teams handling large volumes of documents and shipments.</p></div>
     </div>
     <div class="feature-item">
-      <div class="feature-icon">📦</div>
+      <div class="feature-icon"></div>
       <div><h4>Works with Shipment Files</h4><p>Process delivery notes, invoices, and shipping documents efficiently.</p></div>
     </div>
     <div class="feature-item">
-      <div class="feature-icon">🔒</div>
+      <div class="feature-icon"></div>
       <div><h4>Secure and Private</h4><p>All processing happens on our secure servers. Files are deleted immediately after download.</p></div>
     </div>
   </div>
@@ -325,7 +325,7 @@
       <ul><li><a href="#">Privacy Policy</a></li><li><a href="#">Terms of Service</a></li></ul>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 GK Tools. All rights reserved.</div>
+  <div class="footer-bottom">&copy; 2026 GK Tools. All rights reserved.</div>
 </footer>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
@@ -345,7 +345,7 @@
   function showFileName(event, id) {
     const files = event.target.files;
     const el = document.getElementById('fname-' + id);
-    el.textContent = files.length === 1 ? '📎 ' + files[0].name : '📎 ' + files.length + ' files selected';
+    el.textContent = files.length === 1 ? files[0].name : files.length + ' files selected';
   }
   async function handleSubmit(event, id, tool) {
     event.preventDefault();
@@ -368,4 +368,9 @@
       a.download = match ? match[1].replace(/['"]/g, '') : 'download';
       a.href = url; document.body.appendChild(a); a.click();
       document.body.removeChild(a); URL.revokeObjectURL(url);
-      status.textContent = '✅ Done! Y
+      status.textContent = 'Done! Your file has been downloaded.';
+    }
+  }
+</script>
+</body>
+</html>

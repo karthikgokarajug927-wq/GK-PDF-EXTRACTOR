@@ -12,13 +12,11 @@
     :root { --bg:#f0f0ed; --dark:#14151a; --dark2:#1e2028; --muted:#6b7280; --border:#e2e2de; --white:#ffffff; }
     html { scroll-behavior: smooth; }
     body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--dark); line-height:1.6; }
-
     nav { position:sticky; top:0; z-index:100; background:rgba(240,240,237,0.9); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); padding:0 48px; display:flex; align-items:center; justify-content:space-between; height:64px; }
     .nav-logo { font-family:'Instrument Serif',serif; font-size:22px; color:var(--dark); text-decoration:none; }
     .nav-links { display:flex; gap:32px; list-style:none; }
     .nav-links a { font-size:14px; font-weight:500; color:var(--muted); text-decoration:none; }
     .nav-links a:hover { color:var(--dark); }
-
     .hero { padding:100px 48px 60px; text-align:center; max-width:900px; margin:0 auto; }
     .hero h1 { font-family:'Instrument Serif',serif; font-size:clamp(3rem,7vw,5rem); font-weight:400; line-height:1.1; margin-bottom:24px; }
     .hero h1 em { font-style:italic; color:#5a6472; }
@@ -33,25 +31,21 @@
     .h-box.dark { background:var(--dark); color:var(--white); }
     .h-label { text-align:center; margin-top:10px; font-size:13px; color:var(--muted); }
     .h-arrow { font-size:28px; color:var(--muted); font-weight:300; }
-
     .section { padding:80px 48px; }
     .sec-head { text-align:center; margin-bottom:48px; }
     .sec-tag { font-size:12px; font-weight:700; letter-spacing:0.1em; color:var(--muted); text-transform:uppercase; margin-bottom:12px; }
     .sec-title { font-family:'Instrument Serif',serif; font-size:clamp(2rem,4vw,3rem); font-weight:400; }
     .sec-sub { font-size:16px; color:var(--muted); margin-top:12px; }
-
     .tools-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1px; max-width:900px; margin:0 auto; background:var(--border); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
     .tool-card { background:var(--white); padding:36px 32px 28px; cursor:pointer; transition:background 0.2s; }
     .tool-card:hover { background:#fafaf8; }
     .tool-card h3 { font-size:18px; font-weight:700; margin-bottom:8px; }
     .tool-card p { font-size:14px; color:var(--muted); margin-bottom:20px; }
     .open-tool { font-size:14px; font-weight:600; color:var(--dark); }
-
     .tool-panel { display:none; background:var(--white); border:1px solid var(--border); border-radius:16px; padding:40px; max-width:900px; margin:24px auto 0; }
     .tool-panel.open { display:block; animation:fadeIn 0.3s ease; }
     @keyframes fadeIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
     .tool-panel h3 { font-family:'Instrument Serif',serif; font-size:24px; font-weight:400; margin-bottom:24px; }
-
     .drop-zone { border:2px dashed var(--border); border-radius:12px; padding:48px 24px; text-align:center; cursor:pointer; position:relative; margin-bottom:20px; transition:border-color 0.2s,background 0.2s; }
     .drop-zone:hover { border-color:var(--dark); background:#fafaf8; }
     .drop-zone input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
@@ -59,7 +53,6 @@
     .drop-sub { font-size:14px; color:var(--muted); margin-bottom:16px; }
     .select-btn { display:inline-block; background:var(--dark); color:var(--white); padding:10px 24px; border-radius:50px; font-size:14px; font-weight:600; pointer-events:none; }
     .fname { font-size:13px; font-weight:600; color:var(--dark); margin-top:12px; }
-
     .go-btn { width:100%; background:var(--dark); color:var(--white); border:none; border-radius:50px; padding:14px; font-size:15px; font-weight:600; cursor:pointer; transition:transform 0.2s,box-shadow 0.2s; margin-top:4px; }
     .go-btn:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.2); }
     .go-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
@@ -67,13 +60,11 @@
     .status.loading { color:#f59e0b; }
     .status.ok { color:#16a34a; }
     .status.err { color:#dc2626; }
-
-    /* ZIP Results Panel */
     .results-box { margin-top:28px; background:var(--bg); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
     .results-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background:var(--white); border-bottom:1px solid var(--border); gap:12px; flex-wrap:wrap; }
     .results-count { font-size:15px; font-weight:700; color:var(--dark); }
     .results-actions { display:flex; gap:10px; align-items:center; }
-    .dl-all-btn { background:var(--dark); color:var(--white); border:none; border-radius:8px; padding:9px 18px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; transition:transform 0.2s; }
+    .dl-all-btn { background:var(--dark); color:var(--white); border:none; border-radius:8px; padding:9px 18px; font-size:14px; font-weight:600; cursor:pointer; transition:transform 0.2s; }
     .dl-all-btn:hover { transform:translateY(-1px); }
     .clear-btn { background:var(--white); color:var(--dark); border:1px solid var(--border); border-radius:8px; padding:9px 16px; font-size:14px; font-weight:600; cursor:pointer; transition:background 0.2s; }
     .clear-btn:hover { background:var(--bg); }
@@ -91,10 +82,7 @@
     .pdf-meta { font-size:12px; color:var(--muted); margin-top:2px; }
     .dl-btn { background:var(--white); color:var(--dark); border:1px solid var(--border); border-radius:8px; padding:7px 16px; font-size:13px; font-weight:600; cursor:pointer; flex-shrink:0; transition:background 0.2s; }
     .dl-btn:hover { background:var(--dark); color:var(--white); border-color:var(--dark); }
-
-    /* Other panels */
     .simple-panel { max-width:600px; }
-
     .how-sec { padding:80px 48px; }
     .steps { display:flex; max-width:800px; margin:0 auto; position:relative; }
     .steps::before { content:''; position:absolute; top:44px; left:calc(16.6% + 24px); right:calc(16.6% + 24px); height:1px; background:var(--border); }
@@ -103,7 +91,6 @@
     .step-ic { width:80px; height:80px; border-radius:16px; background:var(--white); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--muted); margin:0 auto 20px; }
     .step h4 { font-size:16px; font-weight:700; margin-bottom:8px; }
     .step p { font-size:13px; color:var(--muted); }
-
     .feat-sec { background:var(--dark2); color:var(--white); padding:80px 48px; }
     .feat-sec .sec-tag { color:#6b7280; }
     .feat-sec .sec-title { color:var(--white); }
@@ -113,7 +100,6 @@
     .feat-ic { width:48px; height:48px; border-radius:12px; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; flex-shrink:0; color:rgba(255,255,255,0.7); }
     .feat-item h4 { font-size:16px; font-weight:600; margin-bottom:6px; }
     .feat-item p { font-size:14px; color:#9ca3af; }
-
     footer { background:var(--white); border-top:1px solid var(--border); padding:48px; }
     .foot-grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:48px; max-width:1000px; margin:0 auto 40px; }
     .foot-logo { font-family:'Instrument Serif',serif; font-size:20px; margin-bottom:8px; }
@@ -124,7 +110,6 @@
     .foot-col a { font-size:13px; color:var(--muted); text-decoration:none; }
     .foot-col a:hover { color:var(--dark); }
     .foot-bottom { text-align:center; font-size:12px; color:var(--muted); border-top:1px solid var(--border); padding-top:24px; max-width:1000px; margin:0 auto; }
-
     @media(max-width:768px){
       nav{padding:0 20px;} .nav-links{display:none;}
       .hero{padding:60px 20px 40px;}
@@ -364,7 +349,7 @@
       <div class="foot-logo">GK Tools</div>
       <p class="foot-p">Professional document processing tools for modern teams.</p>
       <p class="foot-p">Made with precision by GK Tools</p>
-      <a href="/cdn-cgi/l/email-protection#cda6acbfb9a5a4a6aaa2a6acbfaca7b8e3aaf4fffa8daaa0aca4a1e3aea2a0" class="foot-email"><span class="__cf_email__" data-cfemail="7d161c0f091514161a12161c0f1c1708531a444f4a3d1a101c1411531e1210">[email&#160;protected]</span></a>
+      <a href="mailto:karthikgokaraju.g927@gmail.com" class="foot-email">karthikgokaraju.g927@gmail.com</a>
     </div>
     <div class="foot-col">
       <h5>Product</h5>
@@ -372,7 +357,7 @@
     </div>
     <div class="foot-col">
       <h5>Support</h5>
-      <ul><li><a href="#how">Documentation</a></li><li><a href="/cdn-cgi/l/email-protection#bed5dfcccad6d7d5d9d1d5dfccdfd4cb90d9878c89fed9d3dfd7d290ddd1d3">Contact</a></li></ul>
+      <ul><li><a href="#how">Documentation</a></li><li><a href="mailto:karthikgokaraju.g927@gmail.com">Contact</a></li></ul>
     </div>
     <div class="foot-col">
       <h5>Legal</h5>
@@ -382,7 +367,7 @@
   <div class="foot-bottom">(c) 2026 GK Tools. All rights reserved.</div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 var activePanel = null;
 var allPdfFiles = [];
 
@@ -420,7 +405,6 @@ function formatSize(bytes) {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 
-// ZIP EXTRACT - uses JSZip to show individual files
 function doExtract(event) {
   event.preventDefault();
   var form = document.getElementById('form-extract');
@@ -428,19 +412,16 @@ function doExtract(event) {
   var status = document.getElementById('st-extract');
   var files = form.querySelector('input[type="file"]').files;
   if (!files || files.length === 0) return;
-
   btn.disabled = true;
   btn.textContent = 'Extracting...';
   status.textContent = 'Processing ' + files.length + ' ZIP file(s), please wait...';
   status.className = 'status loading';
   document.getElementById('results-extract').style.display = 'none';
   allPdfFiles = [];
-
   var promises = [];
   for (var i = 0; i < files.length; i++) {
     promises.push(extractZip(files[i]));
   }
-
   Promise.all(promises).then(function(results) {
     for (var i = 0; i < results.length; i++) {
       for (var j = 0; j < results[i].length; j++) {
@@ -573,7 +554,6 @@ function escapeHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// STANDARD SUBMIT for other tools
 function doSubmit(event, id, tool) {
   event.preventDefault();
   var form = event.target;
@@ -602,4 +582,17 @@ function doSubmit(event, id, tool) {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       status.textContent = 'Done! Your file has been downloaded.';
-      status.c
+      status.className = 'status ok';
+      btn.disabled = false;
+      btn.textContent = 'Process File';
+    })
+    .catch(function(err) {
+      status.textContent = 'Error: ' + err.message;
+      status.className = 'status err';
+      btn.disabled = false;
+      btn.textContent = 'Try Again';
+    });
+}
+</script>
+</body>
+</html>

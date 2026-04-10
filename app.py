@@ -26,96 +26,108 @@ def temp_path(ext):
     return os.path.join(TEMP_DIR, str(uuid.uuid4()) + ext)
 
 
-def get_full_para_text(para):
-    """Extract paragraph text including hyperlink text from XML."""
-    full_text = ""
+def is_run_bold(run_element):
+    """Check if a run is bold - respects w:val='0' which means NOT bold."""
+    rpr = run_element.find(f'{{{W_NS}}}rPr')
+    if rpr is None:
+        return False
+    b_el = rpr.find(f'{{{W_NS}}}b')
+    if b_el is None:
+        return False
+    # w:val="0" means explicitly NOT bold
+    val = b_el.get(f'{{{W_NS}}}val')
+    if val == '0' or val == 'false':
+        return False
+    return True
+
+
+def get_run_font_size(run_element, default=11):
+    """Get font size from run in points (sz is in half-points)."""
+    rpr = run_element.find(f'{{{W_NS}}}rPr')
+    if rpr is None:
+        return default
+    sz = rpr.find(f'{{{W_NS}}}sz')
+    if sz is not None:
+        val = sz.get(f'{{{W_NS}}}val')
+        if val:
+            return int(val) / 2
+    return default
+
+
+def get_para_default_size(para):
+    """Get the most common font size in paragraph."""
     for child in para._element:
         tag = child.tag.split('}')[-1] if '}' in child.tag else child.tag
         if tag == 'r':
-            # Normal run
-            for t in child.iter(f'{{{W_NS}}}t'):
-                full_text += (t.text or '')
+            sz = get_run_font_size(child)
+            if sz != 11:
+                return sz
+    return 11
+
+
+def build_rich_text(para):
+    """Build rich text with per-run bold/italic/underline and hyperlinks."""
+    result = ""
+    default_size = get_para_default_size(para)
+
+    for child in para._element:
+        tag = child.tag.split('}')[-1] if '}' in child.tag else child.tag
+
+        if tag == 'r':
+            t_text = ''.join(t.text or '' for t in child.iter(f'{{{W_NS}}}t'))
+            if not t_text:
+                continue
+
+            t_safe = t_text.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;')
+            size = get_run_font_size(child, default_size)
+            bold = is_run_bold(child)
+
+            rpr = child.find(f'{{{W_NS}}}rPr')
+            italic = rpr is not None and rpr.find(f'{{{W_NS}}}i') is not None
+            underline = rpr is not None and rpr.find(f'{{{W_NS}}}u') is not None
+
+            # Check italic is not explicitly turned off
+            if italic:
+                i_el = rpr.find(f'{{{W_NS}}}i')
+                if i_el.get(f'{{{W_NS}}}val') in ('0', 'false'):
+                    italic = False
+
+            font_name = 'Helvetica-Bold' if bold else 'Helvetica'
+            o, c = '', ''
+            if bold:    o += '<b>'; c = '</b>' + c
+            if italic:  o += '<i>'; c = '</i>' + c
+            if underline: o += '<u>'; c = '</u>' + c
+
+            result += f'<font name="{font_name}" size="{size}">{o}{t_safe}{c}</font>'
+
         elif tag == 'hyperlink':
-            # Hyperlink - get display text
+            r_id = child.get(f'{{{R_NS}}}id')
+            url = ''
+            if r_id and r_id in para.part.rels:
+                url = para.part.rels[r_id].target_ref
+
+            hl_text = ''.join(t.text or '' for t in child.iter(f'{{{W_NS}}}t'))
+            if not hl_text:
+                continue
+
+            hl_safe = hl_text.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;')
+            if url:
+                result += f'<font name="Helvetica" size="{default_size}" color="blue"><u><link href="{url}">{hl_safe}</link></u></font>'
+            else:
+                result += f'<font name="Helvetica" size="{default_size}" color="blue"><u>{hl_safe}</u></font>'
+
+    return result
+
+
+def get_full_text(para):
+    """Get full paragraph text including hyperlinks."""
+    text = ''
+    for child in para._element:
+        tag = child.tag.split('}')[-1] if '}' in child.tag else child.tag
+        if tag in ('r', 'hyperlink'):
             for t in child.iter(f'{{{W_NS}}}t'):
-                full_text += (t.text or '')
-    return full_text
-
-
-def get_rich_text(para):
-    """Build rich text string with bold/italic/underline tags, including hyperlinks."""
-    rich = ""
-    default_size = 11
-
-    # Get default font size from paragraph
-    for run in para.runs:
-        if run.font.size:
-            default_size = run.font.size.pt
-            break
-
-    def process_runs_in_element(element):
-        result = ""
-        for child in element:
-            tag = child.tag.split('}')[-1] if '}' in child.tag else child.tag
-            if tag == 'r':
-                # Get text
-                t_text = ""
-                for t in child.iter(f'{{{W_NS}}}t'):
-                    t_text += (t.text or '')
-                if not t_text:
-                    continue
-                t_text = t_text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
-                # Get run properties
-                rpr = child.find(f'{{{W_NS}}}rPr')
-                is_bold = False
-                is_italic = False
-                is_underline = False
-                size = default_size
-
-                if rpr is not None:
-                    if rpr.find(f'{{{W_NS}}}b') is not None:
-                        is_bold = True
-                    if rpr.find(f'{{{W_NS}}}i') is not None:
-                        is_italic = True
-                    if rpr.find(f'{{{W_NS}}}u') is not None:
-                        is_underline = True
-                    sz = rpr.find(f'{{{W_NS}}}sz')
-                    if sz is not None:
-                        val = sz.get(f'{{{W_NS}}}val')
-                        if val:
-                            size = int(val) / 2
-
-                o, c = "", ""
-                if is_bold:   o += "<b>"; c = "</b>" + c
-                if is_italic: o += "<i>"; c = "</i>" + c
-                if is_underline: o += "<u>"; c = "</u>" + c
-
-                result += f'<font size="{size}">{o}{t_text}{c}</font>'
-
-            elif tag == 'hyperlink':
-                # Get URL
-                r_id = child.get(f'{{{R_NS}}}id')
-                url = ""
-                if r_id and r_id in para.part.rels:
-                    url = para.part.rels[r_id].target_ref
-
-                # Get display text from hyperlink runs
-                hl_text = ""
-                for t in child.iter(f'{{{W_NS}}}t'):
-                    hl_text += (t.text or '')
-
-                if hl_text:
-                    hl_text = hl_text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-                    if url:
-                        result += f'<font size="{default_size}" color="blue"><u><link href="{url}">{hl_text}</link></u></font>'
-                    else:
-                        result += f'<font size="{default_size}" color="blue"><u>{hl_text}</u></font>'
-
-        return result
-
-    rich = process_runs_in_element(para._element)
-    return rich
+                text += (t.text or '')
+    return text
 
 
 def docx_to_pdf_proper(docx_path):
@@ -123,75 +135,58 @@ def docx_to_pdf_proper(docx_path):
     output = io.BytesIO()
 
     doc_template = SimpleDocTemplate(
-        output,
-        pagesize=A4,
-        rightMargin=20 * mm,
-        leftMargin=20 * mm,
-        topMargin=20 * mm,
-        bottomMargin=20 * mm
+        output, pagesize=A4,
+        rightMargin=20*mm, leftMargin=20*mm,
+        topMargin=20*mm, bottomMargin=20*mm
     )
 
     story = []
-    para_count = 0
 
-    for para in doc.paragraphs:
-        full_text = get_full_para_text(para)
-
+    for i, para in enumerate(doc.paragraphs):
+        full_text = get_full_text(para)
         if not full_text.strip():
-            story.append(Spacer(1, 3 * mm))
+            story.append(Spacer(1, 3*mm))
             continue
 
-        style_name = para.style.name if para.style else "Normal"
+        default_size = get_para_default_size(para)
 
         # Alignment
         alignment = TA_LEFT
-        if para.alignment is not None:
-            from docx.enum.text import WD_ALIGN_PARAGRAPH
-            if para.alignment == WD_ALIGN_PARAGRAPH.CENTER:
-                alignment = TA_CENTER
-            elif para.alignment == WD_ALIGN_PARAGRAPH.RIGHT:
-                alignment = TA_RIGHT
-            elif para.alignment == WD_ALIGN_PARAGRAPH.JUSTIFY:
-                alignment = TA_JUSTIFY
+        try:
+            if para.alignment is not None:
+                from docx.enum.text import WD_ALIGN_PARAGRAPH
+                if para.alignment == WD_ALIGN_PARAGRAPH.CENTER:
+                    alignment = TA_CENTER
+                elif para.alignment == WD_ALIGN_PARAGRAPH.RIGHT:
+                    alignment = TA_RIGHT
+                elif para.alignment == WD_ALIGN_PARAGRAPH.JUSTIFY:
+                    alignment = TA_JUSTIFY
+        except Exception:
+            pass
 
-        # Font size and bold from runs
-        font_size = 11
-        is_bold = False
-        for run in para.runs:
-            if run.font.size:
-                font_size = run.font.size.pt
-            if run.bold:
-                is_bold = True
-
-        # Override for headings
-        if "Heading 1" in style_name:
-            font_size = 18; is_bold = True
-        elif "Heading 2" in style_name:
-            font_size = 15; is_bold = True
-        elif "Heading 3" in style_name:
-            font_size = 13; is_bold = True
-
-        # Get rich text with hyperlinks
-        rich_text = get_rich_text(para)
+        # Build rich text - bold is PER RUN not per paragraph
+        rich_text = build_rich_text(para)
         if not rich_text:
-            rich_text = full_text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            rich_text = full_text.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;')
 
-        para_style = ParagraphStyle(
-            name=f"s{para_count}",
-            fontSize=font_size,
-            leading=font_size * 1.4,
+        # Paragraph style - NO bold at paragraph level
+        ps = ParagraphStyle(
+            name=f'p{i}',
+            fontSize=default_size,
+            leading=default_size * 1.35,
             alignment=alignment,
-            fontName="Helvetica-Bold" if is_bold else "Helvetica",
-            spaceAfter=2 * mm,
+            fontName='Helvetica',
+            spaceAfter=1.5*mm,
         )
 
         try:
-            story.append(Paragraph(rich_text, para_style))
+            story.append(Paragraph(rich_text, ps))
         except Exception:
-            plain = full_text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-            story.append(Paragraph(plain, para_style))
-
-        para_count += 1
+            plain = full_text.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;')
+            try:
+                story.append(Paragraph(plain, ps))
+            except Exception:
+                pass
 
     # Tables
     for table in doc.tables:
@@ -199,27 +194,26 @@ def docx_to_pdf_proper(docx_path):
         for row in table.rows:
             row_data = []
             for cell in row.cells:
-                cell_text = cell.text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                cell_text = cell.text.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;')
                 row_data.append(Paragraph(cell_text, ParagraphStyle(
-                    name="cell", fontSize=9, leading=12
+                    name='cell', fontSize=9, leading=12
                 )))
             table_data.append(row_data)
-
         if table_data:
             col_count = max(len(r) for r in table_data)
-            col_width = (A4[0] - 40 * mm) / col_count
-            t = Table(table_data, colWidths=[col_width] * col_count)
+            col_width = (A4[0] - 40*mm) / col_count
+            t = Table(table_data, colWidths=[col_width]*col_count)
             t.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f0f0ed')),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, -1), 9),
-                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('PADDING', (0, 0), (-1, -1), 4),
+                ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#f0f0ed')),
+                ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0,0), (-1,-1), 9),
+                ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#cccccc')),
+                ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                ('PADDING', (0,0), (-1,-1), 4),
             ]))
-            story.append(Spacer(1, 4 * mm))
+            story.append(Spacer(1, 4*mm))
             story.append(t)
-            story.append(Spacer(1, 4 * mm))
+            story.append(Spacer(1, 4*mm))
 
     doc_template.build(story)
     output.seek(0)

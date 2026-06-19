@@ -178,8 +178,10 @@
     .editor-canvas-container { position:relative; box-shadow:0 4px 16px rgba(0,0,0,0.1); }
     #editor-pdf-canvas { display:block; background:#fff; }
     .editor-overlay { position:absolute; top:0; left:0; right:0; bottom:0; }
-    .editor-text-el { position:absolute; min-width:30px; padding:2px 4px; font-family:Helvetica,sans-serif; outline:none; cursor:move; border:1px dashed transparent; white-space:nowrap; }
+    .editor-text-el { position:absolute; min-width:24px; min-height:22px; padding:2px 6px; font-family:Helvetica,sans-serif; outline:none; cursor:text; border:1px dashed #c4c4c0; white-space:pre; line-height:1.3; background:rgba(255,255,255,0.4); }
     .editor-text-el:hover, .editor-text-el.selected { border-color:#3b82f6; }
+    .editor-text-el:focus { border-color:#3b82f6; border-style:solid; background:rgba(255,255,255,0.85); }
+    .editor-drag-handle { position:absolute; width:16px; height:16px; background:#3b82f6; border-radius:50%; cursor:move; border:2px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,0.35); z-index:5; }
     .editor-shape-el { position:absolute; cursor:move; }
     .editor-shape-el.selected { outline:2px dashed #3b82f6; }
     .editor-sig-el { position:absolute; cursor:move; }
@@ -1005,9 +1007,8 @@ function renderEditorElements() {
   if (!pg) return;
   var els = editorElements[pg.originalIndex] || [];
   els.forEach(function(el) {
-    var domEl;
     if (el.type === 'text') {
-      domEl = document.createElement('div');
+      var domEl = document.createElement('div');
       domEl.className = 'editor-text-el';
       domEl.contentEditable = true;
       domEl.style.left = el.x + 'px';
@@ -1015,9 +1016,34 @@ function renderEditorElements() {
       domEl.style.fontSize = el.fontSize + 'px';
       domEl.style.color = el.color;
       domEl.textContent = el.text;
+      domEl.dataset.elId = el.id;
+      if (el.id === editorSelectedId) domEl.classList.add('selected');
       domEl.oninput = function() { el.text = domEl.textContent; };
-      domEl.onmousedown = function(ev) { startDragElement(ev, el); };
-    } else if (el.type === 'highlight' || el.type === 'rect') {
+      domEl.onfocus = function() { editorSelectedId = el.id; };
+      domEl.onblur = function() {
+        el.text = domEl.textContent;
+        if (!domEl.textContent.trim()) {
+          var pgg = editorPages[editorCurrentIdx];
+          editorElements[pgg.originalIndex] = editorElements[pgg.originalIndex].filter(function(e) {
+            return e.id !== el.id;
+          });
+          renderEditorElements();
+        }
+      };
+      overlay.appendChild(domEl);
+
+      var handle = document.createElement('div');
+      handle.className = 'editor-drag-handle';
+      handle.style.left = (el.x - 10) + 'px';
+      handle.style.top = (el.y - 10) + 'px';
+      handle.title = 'Drag to move';
+      handle.onmousedown = function(ev) { startDragElement(ev, el); };
+      overlay.appendChild(handle);
+      return;
+    }
+
+    var domEl;
+    if (el.type === 'highlight' || el.type === 'rect') {
       domEl = document.createElement('div');
       domEl.className = 'editor-shape-el';
       domEl.style.left = Math.min(el.x1, el.x2) + 'px';
@@ -1098,12 +1124,18 @@ function setupEditorOverlayEvents() {
     if (editorTool === 'text') {
       var el = {
         id: editorElIdSeq++, type: 'text', x: pos.x, y: pos.y,
-        text: 'Double click to edit', fontSize: 16,
+        text: '', fontSize: 18,
         color: document.getElementById('editor-color').value
       };
       editorElements[pg.originalIndex].push(el);
       editorSelectedId = el.id;
       renderEditorElements();
+      setTimeout(function() {
+        var newDomEl = overlay.querySelector('.editor-text-el[data-el-id="' + el.id + '"]');
+        if (newDomEl) {
+          newDomEl.focus();
+        }
+      }, 0);
     } else if (editorTool === 'rect' || editorTool === 'highlight' || editorTool === 'line') {
       editorDrawState = { type: editorTool, x1: pos.x, y1: pos.y, x2: pos.x, y2: pos.y };
 
@@ -1160,9 +1192,10 @@ function renderEditorElementsWithPreview() {
 
 function startDragElement(ev, el) {
   ev.stopPropagation();
-  if (editorTool !== 'select') return;
   editorSelectedId = el.id;
-  renderEditorElements();
+  if (el.type !== 'text') {
+    renderEditorElements();
+  }
   var startX = ev.clientX, startY = ev.clientY;
   var origX = el.x !== undefined ? el.x : el.x1;
   var origY = el.y !== undefined ? el.y : el.y1;

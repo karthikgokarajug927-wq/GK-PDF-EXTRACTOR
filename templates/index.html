@@ -3,11 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="GK Tools - Free online PDF tools. Extract PDFs from ZIP, merge PDFs, compress PDF, convert PDF to Word and Word to PDF instantly." />
+  <meta name="description" content="GK Tools - Free online PDF tools. Extract PDFs from ZIP, merge PDFs, compress PDF, convert PDF to Word, PNG to PDF, add watermark and more." />
   <title>GK Tools - Free Smart PDF Tools Online</title>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7863456533527617" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script>
+    if (typeof pdfjsLib !== "undefined") {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    }
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --bg:#f0f0ed; --dark:#14151a; --dark2:#1e2028; --muted:#6b7280; --border:#e2e2de; --white:#ffffff; }
@@ -54,6 +61,12 @@
     .drop-sub { font-size:14px; color:var(--muted); margin-bottom:16px; }
     .select-btn { display:inline-block; background:var(--dark); color:var(--white); padding:10px 24px; border-radius:50px; font-size:14px; font-weight:600; pointer-events:none; }
     .fname { font-size:13px; font-weight:600; color:var(--dark); margin-top:12px; }
+    .form-row { display:flex; gap:16px; margin-bottom:16px; flex-wrap:wrap; }
+    .form-group { flex:1; min-width:200px; }
+    .form-group label { display:block; font-size:13px; font-weight:600; color:var(--dark); margin-bottom:8px; }
+    .form-input { width:100%; border:1px solid var(--border); border-radius:10px; padding:11px 14px; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; background:var(--bg); }
+    .form-input:focus { border-color:var(--dark); }
+    .form-select { width:100%; border:1px solid var(--border); border-radius:10px; padding:11px 14px; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; background:var(--bg); cursor:pointer; }
     .go-btn { width:100%; background:var(--dark); color:var(--white); border:none; border-radius:50px; padding:14px; font-size:15px; font-weight:600; cursor:pointer; transition:transform 0.2s,box-shadow 0.2s; margin-top:4px; }
     .go-btn:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.2); }
     .go-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
@@ -144,6 +157,37 @@
       footer{padding:40px 20px;}
       .results-header{flex-direction:column;align-items:flex-start;}
       .article-box{padding:28px;}
+      .form-row{flex-direction:column;}
+    }
+
+    .editor-panel { max-width: 1100px; }
+    .editor-toolbar { display:flex; gap:10px; align-items:center; padding:14px; background:var(--bg); border-radius:10px; margin-bottom:16px; flex-wrap:wrap; }
+    .etool-btn { background:var(--white); border:1px solid var(--border); border-radius:8px; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; }
+    .etool-btn.active { background:var(--dark); color:var(--white); border-color:var(--dark); }
+    .etool-btn.danger { color:#dc2626; }
+    .editor-color { width:36px; height:36px; border:none; border-radius:8px; cursor:pointer; padding:0; }
+    .editor-body { display:flex; gap:16px; }
+    .editor-thumbs { width:110px; flex-shrink:0; display:flex; flex-direction:column; gap:10px; max-height:560px; overflow-y:auto; }
+    .editor-thumb { border:2px solid var(--border); border-radius:8px; overflow:hidden; cursor:pointer; position:relative; background:var(--white); }
+    .editor-thumb.active-thumb { border-color: var(--dark); }
+    .editor-thumb canvas { width:100%; display:block; }
+    .editor-thumb-controls { display:flex; justify-content:space-between; padding:4px 2px; background:var(--bg); }
+    .editor-thumb-controls button { background:none; border:none; font-size:10px; cursor:pointer; color:var(--muted); padding:2px 3px; }
+    .editor-thumb-controls button:hover { color:var(--dark); }
+    .editor-canvas-wrap { flex:1; overflow:auto; max-height:600px; background:var(--bg); border-radius:10px; padding:16px; display:flex; justify-content:center; }
+    .editor-canvas-container { position:relative; box-shadow:0 4px 16px rgba(0,0,0,0.1); }
+    #editor-pdf-canvas { display:block; background:#fff; }
+    .editor-overlay { position:absolute; top:0; left:0; right:0; bottom:0; }
+    .editor-text-el { position:absolute; min-width:30px; padding:2px 4px; font-family:Helvetica,sans-serif; outline:none; cursor:move; border:1px dashed transparent; white-space:nowrap; }
+    .editor-text-el:hover, .editor-text-el.selected { border-color:#3b82f6; }
+    .editor-shape-el { position:absolute; cursor:move; }
+    .editor-shape-el.selected { outline:2px dashed #3b82f6; }
+    .editor-sig-el { position:absolute; cursor:move; }
+    .editor-sig-el.selected { outline:2px dashed #3b82f6; }
+    .signature-canvas-el { border:1px solid var(--border); border-radius:8px; background:#fff; touch-action:none; cursor:crosshair; width:100%; max-width:400px; }
+    @media(max-width:768px){
+      .editor-body{flex-direction:column;}
+      .editor-thumbs{width:100%;flex-direction:row;max-height:none;overflow-x:auto;}
     }
   </style>
 </head>
@@ -161,7 +205,7 @@
 
 <section class="hero">
   <h1>Smart PDF Tools<br>for Everyone, <em>Instantly</em></h1>
-  <p>Merge, convert, compress and extract PDFs in seconds. No installation required. Completely free.</p>
+  <p>Merge, convert, compress, extract and edit PDFs in seconds. No installation required. Completely free.</p>
   <div class="hero-btns">
     <a href="#tools" class="btn-dark">Get Started Free</a>
     <a href="#how" class="btn-link">See How It Works</a>
@@ -209,7 +253,22 @@
     </div>
     <div class="tool-card" onclick="openTool('word2pdf')">
       <h3>Word &#8594; PDF</h3>
-      <p>Convert Word documents to PDF format. Share files that look the same on every device.</p>
+      <p>Convert Word documents to PDF format. Share files that look the same everywhere.</p>
+      <span class="open-tool">Open Tool &#8594;</span>
+    </div>
+    <div class="tool-card" onclick="openTool('png2pdf')">
+      <h3>PNG &#8594; PDF</h3>
+      <p>Convert one or multiple PNG images into a single PDF document instantly.</p>
+      <span class="open-tool">Open Tool &#8594;</span>
+    </div>
+    <div class="tool-card" onclick="openTool('watermark')">
+      <h3>Add Text / Watermark to PDF</h3>
+      <p>Add a custom watermark or text to your PDF. Protect your documents easily.</p>
+      <span class="open-tool">Open Tool &#8594;</span>
+    </div>
+    <div class="tool-card" onclick="openTool('editpdf')">
+      <h3>Edit PDF</h3>
+      <p>Add text, shapes, highlights and your signature directly on your PDF pages.</p>
       <span class="open-tool">Open Tool &#8594;</span>
     </div>
   </div>
@@ -312,6 +371,87 @@
       <div class="status" id="st-word2pdf"></div>
     </form>
   </div>
+
+  <!-- PNG TO PDF PANEL -->
+  <div class="tool-panel simple-panel" id="panel-png2pdf">
+    <h3>PNG &#8594; PDF</h3>
+    <form onsubmit="doSubmit(event,'png2pdf','png_to_pdf')">
+      <div class="drop-zone">
+        <input type="file" name="files" accept=".png,.jpg,.jpeg" multiple required onchange="showName(event,'png2pdf')" />
+        <div class="drop-title">Drop PNG or JPG images here</div>
+        <div class="drop-sub">or click to browse</div>
+        <div class="select-btn">Select Images</div>
+        <div class="fname" id="fn-png2pdf"></div>
+      </div>
+      <button type="submit" class="go-btn" id="gb-png2pdf">Convert to PDF</button>
+      <div class="status" id="st-png2pdf"></div>
+    </form>
+  </div>
+
+  <!-- WATERMARK / ADD TEXT PANEL -->
+  <div class="tool-panel simple-panel" id="panel-watermark">
+    <h3>Add Text / Watermark to PDF</h3>
+    <form onsubmit="doSubmit(event,'watermark','watermark_pdf')">
+      <div class="drop-zone">
+        <input type="file" name="files" accept=".pdf" required onchange="showName(event,'watermark')" />
+        <div class="drop-title">Drop a PDF file here</div>
+        <div class="drop-sub">or click to browse</div>
+        <div class="select-btn">Select PDF File</div>
+        <div class="fname" id="fn-watermark"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Text to Add</label>
+          <input type="text" name="watermark_text" class="form-input" placeholder="e.g. CONFIDENTIAL" required />
+        </div>
+        <div class="form-group">
+          <label>Mode</label>
+          <select name="watermark_mode" class="form-select">
+            <option value="watermark">Diagonal Watermark</option>
+            <option value="text">Text at Bottom</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="go-btn" id="gb-watermark">Add to PDF</button>
+      <div class="status" id="st-watermark"></div>
+    </form>
+  </div>
+
+  <!-- EDIT PDF PANEL (Full Visual Editor) -->
+  <div class="tool-panel editor-panel" id="panel-editpdf">
+    <h3>Edit PDF</h3>
+    <div id="editor-upload-step">
+      <div class="drop-zone">
+        <input type="file" id="editor-file-input" accept=".pdf" onchange="loadPdfForEdit(event)" />
+        <div class="drop-title">Drop a PDF file here</div>
+        <div class="drop-sub">or click to browse</div>
+        <div class="select-btn">Select PDF File</div>
+      </div>
+    </div>
+    <div id="editor-workspace" style="display:none;">
+      <div class="editor-toolbar">
+        <button class="etool-btn active" data-tool="select" onclick="setTool('select')">Select</button>
+        <button class="etool-btn" data-tool="text" onclick="setTool('text')">Add Text</button>
+        <button class="etool-btn" data-tool="highlight" onclick="setTool('highlight')">Highlight</button>
+        <button class="etool-btn" data-tool="rect" onclick="setTool('rect')">Rectangle</button>
+        <button class="etool-btn" data-tool="line" onclick="setTool('line')">Line</button>
+        <button class="etool-btn" onclick="openSignaturePad()">Signature</button>
+        <input type="color" id="editor-color" value="#ff0000" class="editor-color" title="Color" />
+        <button class="etool-btn danger" onclick="deleteSelectedElement()">Delete Selected</button>
+        <button class="dl-all-btn" onclick="saveAndDownloadEditedPdf()">Save and Download</button>
+      </div>
+      <div class="editor-body">
+        <div class="editor-thumbs" id="editor-thumbs"></div>
+        <div class="editor-canvas-wrap">
+          <div class="editor-canvas-container" id="editor-canvas-container">
+            <canvas id="editor-pdf-canvas"></canvas>
+            <div class="editor-overlay" id="editor-overlay"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="status" id="st-editpdf"></div>
+  </div>
 </section>
 
 <section class="how-sec" id="how">
@@ -342,7 +482,6 @@
   </div>
 </section>
 
-<!-- BLOG / GUIDES SECTION -->
 <section class="blog-sec" id="guides">
   <div class="sec-head">
     <div class="sec-tag">Tips and Guides</div>
@@ -355,7 +494,7 @@
       <div class="blog-body">
         <div class="blog-tag">Productivity</div>
         <h4>How to Reduce PDF File Size Without Losing Quality</h4>
-        <p>Large PDF files are a pain to share over email. Here is how professionals compress PDFs the right way without losing important document quality.</p>
+        <p>Large PDF files are a pain to share over email. Here is how professionals compress PDFs the right way without losing document quality.</p>
         <span class="blog-read">Read Guide &#8594;</span>
       </div>
     </div>
@@ -364,7 +503,7 @@
       <div class="blog-body">
         <div class="blog-tag">Logistics</div>
         <h4>5 Ways to Manage Documents Faster in Logistics and E-commerce</h4>
-        <p>Operations teams deal with hundreds of documents daily. These five practical tips will help you process invoices, delivery notes and shipping documents much faster.</p>
+        <p>Operations teams deal with hundreds of documents daily. These five practical tips will help you process invoices and shipping documents faster.</p>
         <span class="blog-read">Read Guide &#8594;</span>
       </div>
     </div>
@@ -373,14 +512,13 @@
       <div class="blog-body">
         <div class="blog-tag">Document Tips</div>
         <h4>Why Convert PDF to Word Instead of Retyping Everything</h4>
-        <p>Retyping content from a PDF is one of the biggest time wasters in any office. Converting PDF to Word takes seconds and saves you from hours of manual work.</p>
+        <p>Retyping content from a PDF is one of the biggest time wasters in any office. Converting PDF to Word takes seconds and saves hours.</p>
         <span class="blog-read">Read Guide &#8594;</span>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ARTICLE MODALS -->
 <div class="article-overlay" id="overlay-a1" onclick="closeArticle(event,'a1')">
   <div class="article-box">
     <button class="article-close" onclick="closeByBtn('a1')">&#215;</button>
@@ -390,10 +528,8 @@
     <h3>Why Do PDF Files Get So Large?</h3>
     <p>PDF files grow in size for several reasons. High resolution images embedded in documents are the most common culprit. When a document is scanned or exported from design software, images are often saved at print quality resolution which is far higher than what is needed for screen viewing. Fonts, embedded color profiles, and revision history can also add significant weight to a document.</p>
     <h3>The Right Way to Compress a PDF</h3>
-    <p>The goal of compression is to reduce file size while keeping the document readable and professional. The key is to reduce image resolution to screen quality (72-150 DPI) rather than print quality (300+ DPI), remove embedded fonts that are not critical, and strip out metadata and revision history that is not needed.</p>
+    <p>The goal of compression is to reduce file size while keeping the document readable and professional. The key is to reduce image resolution to screen quality rather than print quality, remove embedded fonts that are not critical, and strip out metadata and revision history that is not needed.</p>
     <p>Using GK Tools Compress PDF feature, you can do this in just a few seconds. Upload your PDF, and the tool automatically applies lossless compression to reduce the file size while keeping your content intact and readable.</p>
-    <h3>When to Compress vs When Not To</h3>
-    <p>Compress your PDFs when you are sharing documents over email, uploading to web portals, or storing large archives. However, if you are sending a document to a print shop or need pixel-perfect image quality, keep the original high resolution version. Always keep a backup of your original file before compressing.</p>
     <h3>Best Practices for PDF File Management</h3>
     <ul>
       <li>Always compress PDFs before sending by email</li>
@@ -413,16 +549,15 @@
     <h2>5 Ways to Manage Documents Faster in Logistics and E-commerce</h2>
     <p>In logistics and e-commerce operations, documents are everywhere. Purchase orders, delivery notes, invoices, packing lists, shipping manifests. Managing all of these manually is slow, error-prone, and exhausting. Here are five practical ways to handle documents faster and more efficiently.</p>
     <h3>1. Extract All PDFs from ZIP Files in One Click</h3>
-    <p>Many vendors and courier companies send documents in ZIP archives. Instead of manually opening each ZIP file and extracting PDFs one by one, use GK Tools ZIP to PDF extractor. Upload multiple ZIP files at once and get all PDFs extracted and ready to download individually in seconds. This alone can save 30 to 60 minutes per day for busy operations teams.</p>
+    <p>Many vendors and courier companies send documents in ZIP archives. Instead of manually opening each ZIP file and extracting PDFs one by one, use GK Tools ZIP to PDF extractor. Upload multiple ZIP files at once and get all PDFs extracted and ready to download individually in seconds.</p>
     <h3>2. Merge Related Documents Into One PDF</h3>
-    <p>Instead of sending five separate PDF files for a single shipment, merge them into one document. A single PDF containing the invoice, packing list, and delivery note is far easier for recipients to manage. Use GK Tools Merge PDF to combine files in the exact order you need.</p>
+    <p>Instead of sending five separate PDF files for a single shipment, merge them into one document. A single PDF containing the invoice, packing list, and delivery note is far easier for recipients to manage.</p>
     <h3>3. Standardize Your File Naming System</h3>
-    <p>One of the biggest time wasters in document management is searching for files. Create a consistent naming convention for all your documents. For example, use OrderID-DocumentType-Date as your format. This makes it easy to find any document in seconds without having to open files to check their contents.</p>
+    <p>One of the biggest time wasters in document management is searching for files. Create a consistent naming convention for all your documents. For example, use OrderID-DocumentType-Date as your format.</p>
     <h3>4. Convert PDFs to Word for Easy Editing</h3>
-    <p>When you receive a PDF that needs to be updated or corrected, do not retype the entire document. Use GK Tools PDF to Word converter to create an editable version in seconds. Make your changes, then convert back to PDF for sharing. This workflow saves enormous amounts of time compared to manual retyping.</p>
+    <p>When you receive a PDF that needs to be updated or corrected, do not retype the entire document. Use GK Tools PDF to Word converter to create an editable version in seconds.</p>
     <h3>5. Compress Before You Archive</h3>
-    <p>Document archives grow quickly in logistics businesses. Before saving files to your archive folder or cloud storage, compress them using GK Tools. Smaller files mean lower storage costs, faster uploads, and easier sharing when you need to retrieve documents months later.</p>
-    <p>Implementing even two or three of these habits in your daily workflow will make a noticeable difference in how efficiently your team manages documents every single day.</p>
+    <p>Document archives grow quickly in logistics businesses. Before saving files to your archive folder or cloud storage, compress them using GK Tools. Smaller files mean lower storage costs and faster uploads.</p>
   </div>
 </div>
 
@@ -431,24 +566,19 @@
     <button class="article-close" onclick="closeByBtn('a3')">&#215;</button>
     <div class="article-tag">Document Tips</div>
     <h2>Why Convert PDF to Word Instead of Retyping Everything</h2>
-    <p>It happens in every office. Someone sends you a PDF and you need to make changes to the content. Without the right tools, you end up doing one of two things: either you retype the entire document from scratch, or you send it back and ask for the original editable version. Both options waste time. There is a much better way.</p>
+    <p>It happens in every office. Someone sends you a PDF and you need to make changes to the content. Without the right tools, you end up retyping the entire document from scratch. Both options waste time. There is a much better way.</p>
     <h3>The Cost of Retyping Documents</h3>
-    <p>Think about how long it takes to retype a 3 page PDF document. Even a fast typist will spend 20 to 40 minutes on it, and that is without accounting for formatting, errors, and proofreading. If you do this even three times a week, you are losing over two hours of productive time every week just on retyping. Over a year that adds up to more than 100 hours of wasted effort.</p>
+    <p>Think about how long it takes to retype a 3 page PDF document. Even a fast typist will spend 20 to 40 minutes on it, and that is without accounting for formatting, errors, and proofreading. If you do this even three times a week, you are losing over two hours of productive time every week.</p>
     <h3>How PDF to Word Conversion Works</h3>
-    <p>Modern PDF to Word converters extract the text, layout, and formatting from your PDF and recreate it as an editable Word document. GK Tools uses advanced conversion technology to preserve as much of the original formatting as possible, including headings, paragraphs, tables, and basic layout structure. The result is a Word document you can edit immediately without any retyping.</p>
+    <p>Modern PDF to Word converters extract the text, layout, and formatting from your PDF and recreate it as an editable Word document. GK Tools uses advanced conversion technology to preserve as much of the original formatting as possible, including headings, paragraphs, tables, and basic layout structure.</p>
     <h3>When Should You Convert PDF to Word</h3>
     <ul>
       <li>When you need to edit or update a document you received as a PDF</li>
       <li>When you need to copy specific sections of a PDF into another document</li>
       <li>When you need to reformat a document for a different purpose</li>
       <li>When a client or colleague asks for an editable version of a PDF</li>
-      <li>When you need to translate document content</li>
     </ul>
-    <h3>Tips for Better Conversion Results</h3>
-    <p>PDF to Word conversion works best on documents that were originally created digitally rather than scanned from paper. For scanned documents, the results may require some manual cleanup after conversion. Always review the converted document before making edits to ensure all content transferred correctly.</p>
-    <p>Using GK Tools PDF to Word converter is completely free and takes less than 30 seconds. Upload your PDF, download the Word file, and start editing. No account required, no software to install, no waiting.</p>
-    <h3>After Editing, Convert Back to PDF</h3>
-    <p>Once you have made your changes in Word, use GK Tools Word to PDF converter to create a clean, professional PDF ready for sharing. This complete workflow of converting, editing, and converting back takes just a few minutes and replaces hours of manual retyping.</p>
+    <p>Using GK Tools PDF to Word converter is completely free and takes less than 30 seconds. Upload your PDF, download the Word file, and start editing. No account required, no software to install.</p>
   </div>
 </div>
 
@@ -477,6 +607,18 @@
     </div>
   </div>
 </section>
+
+<div class="article-overlay" id="signature-modal">
+  <div class="article-box" style="max-width:480px;">
+    <button class="article-close" onclick="closeSignatureModal()">&#215;</button>
+    <h2 style="font-size:20px;">Draw Your Signature</h2>
+    <canvas id="signature-canvas" class="signature-canvas-el" width="400" height="180"></canvas>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="clear-btn" onclick="clearSignaturePad()">Clear</button>
+      <button class="go-btn" onclick="useSignature()">Use This Signature</button>
+    </div>
+  </div>
+</div>
 
 <footer>
   <div class="foot-grid">
@@ -755,6 +897,524 @@ function doSubmit(event, id, tool) {
       btn.textContent = 'Try Again';
     });
 }
+
+// ============ EDIT PDF FEATURE (Sejda-style) ============
+var editorOriginalBytes = null;
+var editorPdfJsDoc = null;
+var editorPages = [];
+var editorElements = {};
+var editorCurrentIdx = 0;
+var editorTool = 'select';
+var editorScale = 1.4;
+var editorElIdSeq = 1;
+var editorSelectedId = null;
+var editorDrawState = null;
+var signatureDataUrl = null;
+var signaturePlacing = false;
+
+function loadPdfForEdit(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var status = document.getElementById('st-editpdf');
+  status.textContent = 'Loading PDF...';
+  status.className = 'status loading';
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    editorOriginalBytes = e.target.result;
+    var bytesCopy = editorOriginalBytes.slice(0);
+    pdfjsLib.getDocument({ data: bytesCopy }).promise.then(function(pdfDoc) {
+      editorPdfJsDoc = pdfDoc;
+      editorPages = [];
+      editorElements = {};
+      for (var i = 1; i <= pdfDoc.numPages; i++) {
+        editorPages.push({ originalIndex: i, rotation: 0, deleted: false });
+        editorElements[i] = [];
+      }
+      editorCurrentIdx = 0;
+      document.getElementById('editor-upload-step').style.display = 'none';
+      document.getElementById('editor-workspace').style.display = 'block';
+      status.textContent = '';
+      setupEditorOverlayEvents();
+      renderThumbnails();
+      renderCurrentEditorPage();
+    }).catch(function(err) {
+      status.textContent = 'Error loading PDF: ' + err.message;
+      status.className = 'status err';
+    });
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function renderThumbnails() {
+  var container = document.getElementById('editor-thumbs');
+  container.innerHTML = '';
+  editorPages.forEach(function(pg, idx) {
+    if (pg.deleted) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'editor-thumb' + (idx === editorCurrentIdx ? ' active-thumb' : '');
+    var canvas = document.createElement('canvas');
+    wrap.appendChild(canvas);
+    var controls = document.createElement('div');
+    controls.className = 'editor-thumb-controls';
+    controls.innerHTML =
+      '<button onclick="event.stopPropagation();rotateEditorPage(' + idx + ')">Rotate</button>' +
+      '<button onclick="event.stopPropagation();movePageUp(' + idx + ')">Up</button>' +
+      '<button onclick="event.stopPropagation();movePageDown(' + idx + ')">Down</button>' +
+      '<button onclick="event.stopPropagation();deleteEditorPage(' + idx + ')">Del</button>';
+    wrap.appendChild(controls);
+    wrap.onclick = function() {
+      editorCurrentIdx = idx;
+      renderThumbnails();
+      renderCurrentEditorPage();
+    };
+    container.appendChild(wrap);
+
+    editorPdfJsDoc.getPage(pg.originalIndex).then(function(page) {
+      var viewport = page.getViewport({ scale: 0.25, rotation: pg.rotation });
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      var ctx = canvas.getContext('2d');
+      page.render({ canvasContext: ctx, viewport: viewport });
+    });
+  });
+}
+
+function renderCurrentEditorPage() {
+  var pg = editorPages[editorCurrentIdx];
+  if (!pg) return;
+  editorPdfJsDoc.getPage(pg.originalIndex).then(function(page) {
+    var viewport = page.getViewport({ scale: editorScale, rotation: pg.rotation });
+    var canvas = document.getElementById('editor-pdf-canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    var ctx = canvas.getContext('2d');
+    page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function() {
+      var container = document.getElementById('editor-canvas-container');
+      container.style.width = viewport.width + 'px';
+      container.style.height = viewport.height + 'px';
+      renderEditorElements();
+    });
+  });
+}
+
+function renderEditorElements() {
+  var overlay = document.getElementById('editor-overlay');
+  overlay.innerHTML = '';
+  var pg = editorPages[editorCurrentIdx];
+  if (!pg) return;
+  var els = editorElements[pg.originalIndex] || [];
+  els.forEach(function(el) {
+    var domEl;
+    if (el.type === 'text') {
+      domEl = document.createElement('div');
+      domEl.className = 'editor-text-el';
+      domEl.contentEditable = true;
+      domEl.style.left = el.x + 'px';
+      domEl.style.top = el.y + 'px';
+      domEl.style.fontSize = el.fontSize + 'px';
+      domEl.style.color = el.color;
+      domEl.textContent = el.text;
+      domEl.oninput = function() { el.text = domEl.textContent; };
+      domEl.onmousedown = function(ev) { startDragElement(ev, el); };
+    } else if (el.type === 'highlight' || el.type === 'rect') {
+      domEl = document.createElement('div');
+      domEl.className = 'editor-shape-el';
+      domEl.style.left = Math.min(el.x1, el.x2) + 'px';
+      domEl.style.top = Math.min(el.y1, el.y2) + 'px';
+      domEl.style.width = Math.abs(el.x2 - el.x1) + 'px';
+      domEl.style.height = Math.abs(el.y2 - el.y1) + 'px';
+      if (el.type === 'highlight') {
+        domEl.style.background = el.color;
+        domEl.style.opacity = '0.4';
+      } else {
+        domEl.style.border = '2px solid ' + el.color;
+      }
+      domEl.onmousedown = function(ev) { startDragElement(ev, el); };
+    } else if (el.type === 'line') {
+      domEl = document.createElement('div');
+      domEl.className = 'editor-shape-el';
+      var lx = Math.min(el.x1, el.x2), ly = Math.min(el.y1, el.y2);
+      var lw = Math.abs(el.x2 - el.x1), lh = Math.abs(el.y2 - el.y1);
+      domEl.style.left = lx + 'px';
+      domEl.style.top = ly + 'px';
+      domEl.style.width = Math.max(lw, 2) + 'px';
+      domEl.style.height = Math.max(lh, 2) + 'px';
+      if (lh < lw) {
+        domEl.style.borderTop = '2px solid ' + el.color;
+      } else {
+        domEl.style.borderLeft = '2px solid ' + el.color;
+      }
+      domEl.onmousedown = function(ev) { startDragElement(ev, el); };
+    } else if (el.type === 'signature') {
+      domEl = document.createElement('img');
+      domEl.className = 'editor-sig-el';
+      domEl.src = el.dataUrl;
+      domEl.style.left = el.x + 'px';
+      domEl.style.top = el.y + 'px';
+      domEl.style.width = el.width + 'px';
+      domEl.style.height = el.height + 'px';
+      domEl.onmousedown = function(ev) { startDragElement(ev, el); };
+    }
+    if (domEl) {
+      domEl.dataset.elId = el.id;
+      if (el.id === editorSelectedId) domEl.classList.add('selected');
+      overlay.appendChild(domEl);
+    }
+  });
+}
+
+function setTool(tool) {
+  editorTool = tool;
+  document.querySelectorAll('.etool-btn').forEach(function(b) { b.classList.remove('active'); });
+  var btn = document.querySelector('.etool-btn[data-tool="' + tool + '"]');
+  if (btn) btn.classList.add('active');
+  if (tool !== 'select') {
+    signaturePlacing = false;
+  }
+}
+
+function getOverlayPos(ev) {
+  var container = document.getElementById('editor-canvas-container');
+  var rect = container.getBoundingClientRect();
+  return { x: ev.clientX - rect.left, y: ev.clientY - rect.top };
+}
+
+function setupEditorOverlayEvents() {
+  var overlay = document.getElementById('editor-overlay');
+  if (!overlay || overlay.dataset.bound) return;
+  overlay.dataset.bound = '1';
+
+  overlay.addEventListener('mousedown', function(ev) {
+    if (ev.target !== overlay) return;
+    var pos = getOverlayPos(ev);
+    var pg = editorPages[editorCurrentIdx];
+
+    if (signaturePlacing) {
+      placeSignatureAt(pos.x, pos.y);
+      return;
+    }
+
+    if (editorTool === 'text') {
+      var el = {
+        id: editorElIdSeq++, type: 'text', x: pos.x, y: pos.y,
+        text: 'Double click to edit', fontSize: 16,
+        color: document.getElementById('editor-color').value
+      };
+      editorElements[pg.originalIndex].push(el);
+      editorSelectedId = el.id;
+      renderEditorElements();
+    } else if (editorTool === 'rect' || editorTool === 'highlight' || editorTool === 'line') {
+      editorDrawState = { type: editorTool, x1: pos.x, y1: pos.y, x2: pos.x, y2: pos.y };
+
+      var moveHandler = function(mev) {
+        var p = getOverlayPos(mev);
+        editorDrawState.x2 = p.x;
+        editorDrawState.y2 = p.y;
+        renderEditorElementsWithPreview();
+      };
+      var upHandler = function() {
+        document.removeEventListener('mousemove', moveHandler);
+        document.removeEventListener('mouseup', upHandler);
+        if (editorDrawState && (Math.abs(editorDrawState.x2 - editorDrawState.x1) > 4 || Math.abs(editorDrawState.y2 - editorDrawState.y1) > 4)) {
+          var newEl = {
+            id: editorElIdSeq++, type: editorDrawState.type,
+            x1: editorDrawState.x1, y1: editorDrawState.y1,
+            x2: editorDrawState.x2, y2: editorDrawState.y2,
+            color: document.getElementById('editor-color').value
+          };
+          editorElements[pg.originalIndex].push(newEl);
+        }
+        editorDrawState = null;
+        renderEditorElements();
+      };
+      document.addEventListener('mousemove', moveHandler);
+      document.addEventListener('mouseup', upHandler);
+    } else if (editorTool === 'select') {
+      editorSelectedId = null;
+      renderEditorElements();
+    }
+  });
+}
+
+function renderEditorElementsWithPreview() {
+  renderEditorElements();
+  if (editorDrawState) {
+    var overlay = document.getElementById('editor-overlay');
+    var domEl = document.createElement('div');
+    domEl.className = 'editor-shape-el';
+    var d = editorDrawState;
+    domEl.style.left = Math.min(d.x1, d.x2) + 'px';
+    domEl.style.top = Math.min(d.y1, d.y2) + 'px';
+    domEl.style.width = Math.abs(d.x2 - d.x1) + 'px';
+    domEl.style.height = Math.abs(d.y2 - d.y1) + 'px';
+    if (d.type === 'highlight') {
+      domEl.style.background = '#ffeb3b';
+      domEl.style.opacity = '0.4';
+    } else {
+      domEl.style.border = '2px dashed #999';
+    }
+    overlay.appendChild(domEl);
+  }
+}
+
+function startDragElement(ev, el) {
+  ev.stopPropagation();
+  if (editorTool !== 'select') return;
+  editorSelectedId = el.id;
+  renderEditorElements();
+  var startX = ev.clientX, startY = ev.clientY;
+  var origX = el.x !== undefined ? el.x : el.x1;
+  var origY = el.y !== undefined ? el.y : el.y1;
+
+  function onMove(mev) {
+    var dx = mev.clientX - startX;
+    var dy = mev.clientY - startY;
+    if (el.x !== undefined) {
+      el.x = origX + dx;
+      el.y = origY + dy;
+    }
+    if (el.x1 !== undefined) {
+      var w = el.x2 - el.x1, h = el.y2 - el.y1;
+      el.x1 = origX + dx;
+      el.y1 = origY + dy;
+      el.x2 = el.x1 + w;
+      el.y2 = el.y1 + h;
+    }
+    renderEditorElements();
+  }
+  function onUp() {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+  }
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
+function deleteSelectedElement() {
+  if (!editorSelectedId) return;
+  var pg = editorPages[editorCurrentIdx];
+  editorElements[pg.originalIndex] = editorElements[pg.originalIndex].filter(function(e) {
+    return e.id !== editorSelectedId;
+  });
+  editorSelectedId = null;
+  renderEditorElements();
+}
+
+function rotateEditorPage(idx) {
+  editorPages[idx].rotation = (editorPages[idx].rotation + 90) % 360;
+  renderThumbnails();
+  if (idx === editorCurrentIdx) renderCurrentEditorPage();
+}
+
+function deleteEditorPage(idx) {
+  editorPages[idx].deleted = true;
+  if (editorCurrentIdx === idx) {
+    var nextIdx = editorPages.findIndex(function(p) { return !p.deleted; });
+    editorCurrentIdx = nextIdx === -1 ? 0 : nextIdx;
+  }
+  renderThumbnails();
+  renderCurrentEditorPage();
+}
+
+function movePageUp(idx) {
+  if (idx === 0) return;
+  var tmp = editorPages[idx - 1];
+  editorPages[idx - 1] = editorPages[idx];
+  editorPages[idx] = tmp;
+  if (editorCurrentIdx === idx) editorCurrentIdx = idx - 1;
+  else if (editorCurrentIdx === idx - 1) editorCurrentIdx = idx;
+  renderThumbnails();
+}
+
+function movePageDown(idx) {
+  if (idx === editorPages.length - 1) return;
+  var tmp = editorPages[idx + 1];
+  editorPages[idx + 1] = editorPages[idx];
+  editorPages[idx] = tmp;
+  if (editorCurrentIdx === idx) editorCurrentIdx = idx + 1;
+  else if (editorCurrentIdx === idx + 1) editorCurrentIdx = idx;
+  renderThumbnails();
+}
+
+function openSignaturePad() {
+  document.getElementById('signature-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(initSignatureCanvas, 50);
+}
+
+function closeSignatureModal() {
+  document.getElementById('signature-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function initSignatureCanvas() {
+  var canvas = document.getElementById('signature-canvas');
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = '#14151a';
+
+  var drawing = false;
+
+  function pos(ev) {
+    var rect = canvas.getBoundingClientRect();
+    var cx = (ev.touches ? ev.touches[0].clientX : ev.clientX) - rect.left;
+    var cy = (ev.touches ? ev.touches[0].clientY : ev.clientY) - rect.top;
+    return { x: cx, y: cy };
+  }
+  function start(ev) {
+    drawing = true;
+    var p = pos(ev);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+  }
+  function move(ev) {
+    if (!drawing) return;
+    ev.preventDefault();
+    var p = pos(ev);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+  }
+  function end() { drawing = false; }
+
+  canvas.onmousedown = start;
+  canvas.onmousemove = move;
+  canvas.onmouseup = end;
+  canvas.onmouseleave = end;
+  canvas.ontouchstart = start;
+  canvas.ontouchmove = move;
+  canvas.ontouchend = end;
+}
+
+function clearSignaturePad() {
+  var canvas = document.getElementById('signature-canvas');
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function useSignature() {
+  var canvas = document.getElementById('signature-canvas');
+  signatureDataUrl = canvas.toDataURL('image/png');
+  closeSignatureModal();
+  signaturePlacing = true;
+  var status = document.getElementById('st-editpdf');
+  status.textContent = 'Click anywhere on the page to place your signature';
+  status.className = 'status loading';
+}
+
+function placeSignatureAt(x, y) {
+  var pg = editorPages[editorCurrentIdx];
+  var el = {
+    id: editorElIdSeq++, type: 'signature', x: x - 60, y: y - 25,
+    width: 120, height: 50, dataUrl: signatureDataUrl
+  };
+  editorElements[pg.originalIndex].push(el);
+  signaturePlacing = false;
+  document.getElementById('st-editpdf').textContent = '';
+  renderEditorElements();
+}
+
+function hexToRgb01(hex) {
+  hex = hex.replace('#', '');
+  var bigint = parseInt(hex, 16);
+  var r = ((bigint >> 16) & 255) / 255;
+  var g = ((bigint >> 8) & 255) / 255;
+  var b = (bigint & 255) / 255;
+  return { r: r, g: g, b: b };
+}
+
+function saveAndDownloadEditedPdf() {
+  var status = document.getElementById('st-editpdf');
+  status.textContent = 'Generating your edited PDF...';
+  status.className = 'status loading';
+
+  var srcBytes = editorOriginalBytes.slice(0);
+  var scaleFactor = editorScale;
+
+  PDFLib.PDFDocument.load(srcBytes).then(function(srcDoc) {
+    return PDFLib.PDFDocument.create().then(function(newDoc) {
+      var visiblePages = editorPages.filter(function(p) { return !p.deleted; });
+      var origIndices = visiblePages.map(function(p) { return p.originalIndex - 1; });
+
+      return newDoc.copyPages(srcDoc, origIndices).then(function(copiedPages) {
+        var sigPromises = [];
+
+        copiedPages.forEach(function(page, i) {
+          var pgInfo = visiblePages[i];
+          newDoc.addPage(page);
+          page.setRotation(PDFLib.degrees(pgInfo.rotation));
+
+          var els = editorElements[pgInfo.originalIndex] || [];
+          var pageHeightPt = page.getHeight();
+
+          els.forEach(function(el) {
+            if (el.type === 'text') {
+              var pdfX = el.x / scaleFactor;
+              var fontPt = el.fontSize / scaleFactor;
+              var pdfY = pageHeightPt - (el.y / scaleFactor) - fontPt;
+              var rgb = hexToRgb01(el.color);
+              page.drawText(el.text || '', {
+                x: pdfX, y: pdfY, size: fontPt,
+                color: PDFLib.rgb(rgb.r, rgb.g, rgb.b)
+              });
+            } else if (el.type === 'highlight' || el.type === 'rect') {
+              var x1 = Math.min(el.x1, el.x2) / scaleFactor;
+              var y1 = pageHeightPt - (Math.max(el.y1, el.y2) / scaleFactor);
+              var w = Math.abs(el.x2 - el.x1) / scaleFactor;
+              var h = Math.abs(el.y2 - el.y1) / scaleFactor;
+              var rgb2 = hexToRgb01(el.color);
+              if (el.type === 'highlight') {
+                page.drawRectangle({ x: x1, y: y1, width: w, height: h, color: PDFLib.rgb(rgb2.r, rgb2.g, rgb2.b), opacity: 0.4 });
+              } else {
+                page.drawRectangle({ x: x1, y: y1, width: w, height: h, borderColor: PDFLib.rgb(rgb2.r, rgb2.g, rgb2.b), borderWidth: 2 });
+              }
+            } else if (el.type === 'line') {
+              var rgb3 = hexToRgb01(el.color);
+              page.drawLine({
+                start: { x: el.x1 / scaleFactor, y: pageHeightPt - (el.y1 / scaleFactor) },
+                end: { x: el.x2 / scaleFactor, y: pageHeightPt - (el.y2 / scaleFactor) },
+                thickness: 2, color: PDFLib.rgb(rgb3.r, rgb3.g, rgb3.b)
+              });
+            } else if (el.type === 'signature') {
+              var p = newDoc.embedPng(el.dataUrl).then(function(img) {
+                var sx = el.x / scaleFactor;
+                var sy = pageHeightPt - (el.y / scaleFactor) - (el.height / scaleFactor);
+                page.drawImage(img, {
+                  x: sx, y: sy,
+                  width: el.width / scaleFactor,
+                  height: el.height / scaleFactor
+                });
+              });
+              sigPromises.push(p);
+            }
+          });
+        });
+
+        return Promise.all(sigPromises).then(function() { return newDoc; });
+      });
+    });
+  }).then(function(newDoc) {
+    return newDoc.save();
+  }).then(function(pdfBytes) {
+    var blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'edited.pdf';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    status.textContent = 'Done! Your edited PDF has been downloaded.';
+    status.className = 'status ok';
+  }).catch(function(err) {
+    status.textContent = 'Error: ' + err.message;
+    status.className = 'status err';
+  });
+}
+
 </script>
 </body>
 </html>
